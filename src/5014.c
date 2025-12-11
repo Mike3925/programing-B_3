@@ -11,7 +11,7 @@
 
 #define ADVANCED 0 // 発展課題（絞り込み検索）に対応する場合は1に変更
 
-#define DATAFILE "data_utf.csv"
+#define DATAFILE "csv/data_utf.csv"
 #define CLEN 9          // 郵便番号の最大バイト長
 #define ALEN 200        // 住所欄の最大バイト長
 #define MAX_SIZE 200000 // 住所録中の住所数の最大数
@@ -26,6 +26,14 @@
 int mode;         // 検索モード 0:なし，1:郵便番号検索，2:文字列検索
 int refine_flag;  // 絞り込み検索の有無 0:なし，1:あり
 char query[ALEN]; // 検索クエリ（郵便番号or文字列）
+typedef struct address{
+  int code; //郵便番号
+  char pref[9]; //都道府県 MAX 4
+  char city[21]; //市町村 MAX 10
+  char town[77]; //町域 MAX 38
+  struct address *next;
+} ADDRESS; // データ記録用構造体
+ADDRESS address_data[124341];
 
 // 住所データファイルを読み取り，配列に保存
 void scan()
@@ -33,6 +41,7 @@ void scan()
   FILE *fp;
   long line = 0;
   char code[CLEN + 1], pref[ALEN + 1], city[ALEN + 1], town[ALEN + 1]; // tmp[ALEN+1];
+  
 
   // datasizeの計算
   if ((fp = fopen(DATAFILE, "r")) == NULL)
@@ -47,6 +56,10 @@ void scan()
       文字列が記憶される．この箇所にコードを加筆し，
 　　　これらの情報を用いて構造体の配列に住所データを記憶させる．
      */
+    address_data[line].code = atoi(code);
+    strcpy(address_data[line].pref, pref);
+    strcpy(address_data[line].city, city);
+    strcpy(address_data[line].town, town);
     line++;
   }
   fclose(fp);

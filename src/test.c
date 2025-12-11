@@ -20,3 +20,13 @@
 #define QUERY_ADDRESS 2
 #define STANDBY_REFINE 3
 #define QUERY_REFINE 4
+
+int main(){
+  char ch[9] = "おはよう";
+  // scanf("%s", ch);
+  char a[] = "あ";
+  printf("%d\n", sizeof(a));
+  for (int i=0; i < sizeof(ch) / sizeof(ch[0]); i++){
+    printf("%d %x\n", i, ch[i]);
+  }
+}
