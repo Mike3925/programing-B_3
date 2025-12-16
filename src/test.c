@@ -22,11 +22,6 @@
 #define QUERY_REFINE 4
 
 int main(){
-  char ch[9] = "おはよう";
-  // scanf("%s", ch);
-  char a[] = "あ";
-  printf("%d\n", sizeof(a));
-  for (int i=0; i < sizeof(ch) / sizeof(ch[0]); i++){
-    printf("%d %x\n", i, ch[i]);
-  }
+  char c[] = "北";
+  printf("%d", sizeof(c));
 }

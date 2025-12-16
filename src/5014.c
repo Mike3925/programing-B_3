@@ -11,10 +11,13 @@
 
 #define ADVANCED 0 // 発展課題（絞り込み検索）に対応する場合は1に変更
 
-#define DATAFILE "csv/data_utf.csv"
 #define CLEN 9          // 郵便番号の最大バイト長
 #define ALEN 200        // 住所欄の最大バイト長
-#define MAX_SIZE 200000 // 住所録中の住所数の最大数
+// #define DATAFILE "csv/data_utf.csv"
+// #define MAX_SIZE 124340// 住所録中の住所数の最大数
+
+#define DATAFILE "csv/light.csv"
+#define MAX_SIZE 1000 // 住所録中の住所数の最大数
 
 // 動作確認で使うファイル実行モードで使う定数。修正不要
 #define STANDBY_MAIN 0
@@ -28,12 +31,67 @@ int refine_flag;  // 絞り込み検索の有無 0:なし，1:あり
 char query[ALEN]; // 検索クエリ（郵便番号or文字列）
 typedef struct address{
   int code; //郵便番号
-  char pref[9]; //都道府県 MAX 4
-  char city[21]; //市町村 MAX 10
-  char town[77]; //町域 MAX 38
-  struct address *next;
+  char pref[13]; //都道府県 MAX 4 x 3
+  char city[35]; //市町村 MAX 10 x 3
+  char town[120]; //町域 MAX 38 x 3
 } ADDRESS; // データ記録用構造体
-ADDRESS address_data[124341];
+ADDRESS address_data[MAX_SIZE];
+ADDRESS *address_index[MAX_SIZE];
+
+// quick sort
+int show(int array[]);
+
+void swap(ADDRESS **x, ADDRESS **y)
+{
+  ADDRESS *temp; // 値を一時保存する変数
+
+  // printf("first x %x\n", x);
+  // printf("first y %x\n", y);
+  temp = *x;
+  *x = *y;
+  *y = temp;
+  // printf("second x %x\n", x);
+  // printf("second y %x\n", y);
+}
+
+int partition(ADDRESS **array_index, int left, int right)
+{
+  int i, j;
+  i = left;
+  j = right;
+  int pivot_value = array_index[(left + right) / 2]->code; // 中央の要素をpivotとする
+
+  do
+  {
+    while (array_index[i]->code < pivot_value){
+      i++;
+    }
+    while (array_index[j]->code > pivot_value){
+      j--;
+    }
+    // pivotより小さいものを左へ、大きいものを右へ
+    swap(&array_index[i], &array_index[j]);
+    // show(array);
+  } while (i < j);
+  swap(&array_index[i], &array_index[j]);
+
+  return j;
+}
+
+int quick_sort(ADDRESS **array_index, int left, int right)
+{
+  int j;
+
+  if (left < right)
+  {
+    j = partition(array_index, left, right);
+    // printf("partition\n");
+    // show(array);
+    // printf("j :%d\n\n",j);
+    quick_sort(array_index, left, j - 1);
+    quick_sort(array_index, j + 1, right);
+  }
+}
 
 // 住所データファイルを読み取り，配列に保存
 void scan()
@@ -41,7 +99,6 @@ void scan()
   FILE *fp;
   long line = 0;
   char code[CLEN + 1], pref[ALEN + 1], city[ALEN + 1], town[ALEN + 1]; // tmp[ALEN+1];
-  
 
   // datasizeの計算
   if ((fp = fopen(DATAFILE, "r")) == NULL)
@@ -49,7 +106,7 @@ void scan()
     fprintf(stderr, "error:cannot read %s\n", DATAFILE);
     exit(-1);
   }
-  while (fscanf(fp, "%*[^,],%*[^,],%[^,],%*[^,],%*[^,],%*[^,],%[^,],%[^,],%[^,],%*s", code, pref, city, town) != EOF)
+  while (fscanf(fp, "%*[^,],%*[^,],\"%[^\"]\",%*[^,],%*[^,],%*[^,],\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%*s", code, pref, city, town) != EOF)
   {
     /*
       上のfscanfにより，code,pref,city,townにそれぞれ郵便番号，都道府県，市町村，町域を表す
@@ -60,8 +117,16 @@ void scan()
     strcpy(address_data[line].pref, pref);
     strcpy(address_data[line].city, city);
     strcpy(address_data[line].town, town);
+    address_index[line] = &address_data[line];
     line++;
   }
+  quick_sort(address_index, 0, 772);
+  printf("sorted code\n");
+  for (int i = 0; i < 10; i++)
+  {
+    printf("%d : %d\n", i, address_index[i]->code );
+  }
+  
   fclose(fp);
 }
 
@@ -73,12 +138,13 @@ double diff_time(clock_t t1, clock_t t2)
 // 初期化処理
 void init()
 {
+  memset(address_data, 0, sizeof(address_data)); //構造体の初期化
   clock_t t1, t2;
 
   t1 = clock();
   scan();
   t2 = clock();
-  // printf("\n### %f sec for initialization. ###\n",diff_time(t1,t2));
+  printf("\n### %f sec for initialization. ###\n",diff_time(t1,t2));
 }
 
 // 郵便番号による住所検索．検索結果を出力．
@@ -275,7 +341,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    respond();
+    // respond();
   }
   return 0;
 }
