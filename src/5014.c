@@ -13,11 +13,11 @@
 
 #define CLEN 9          // 郵便番号の最大バイト長
 #define ALEN 200        // 住所欄の最大バイト長
-// #define DATAFILE "csv/data_utf.csv"
-// #define MAX_SIZE 124340// 住所録中の住所数の最大数
+#define DATAFILE "csv/data_utf.csv"
+#define MAX_SIZE 124340// 住所録中の住所数の最大数
 
-#define DATAFILE "csv/light.csv"
-#define MAX_SIZE 1000 // 住所録中の住所数の最大数
+// #define DATAFILE "csv/light.csv"
+// #define MAX_SIZE 10 // 住所録中の住所数の最大数
 
 // 動作確認で使うファイル実行モードで使う定数。修正不要
 #define STANDBY_MAIN 0
@@ -38,8 +38,42 @@ typedef struct address{
 ADDRESS address_data[MAX_SIZE];
 ADDRESS *address_index[MAX_SIZE];
 
+// merge sort
+void mergesort(ADDRESS **array_index, int left, int right);
+void merge(ADDRESS **array_index, int left1, int right1, int left2, int rihgt2);
+
+void mergesort(ADDRESS **array_index, int left, int right)
+{
+  int half;
+
+  if (left < right){
+    half = (left+right)/2;
+    mergesort(array_index, left, half);
+    mergesort(array_index, half+1, right);
+    merge(array_index, left, half, half+1, right);
+  }
+}
+
+void merge(ADDRESS **array_index, int left1, int right1, int left2, int right2){
+  ADDRESS *tmp_arr[MAX_SIZE];
+  int i=left1;
+  int j=left2;
+
+  for (int k=left1; k <= right2; k++)  tmp_arr[k] = array_index[k];
+
+  int k=left1;
+  while ((i <= right1) && (j <= right2)){
+    if (tmp_arr[i]->code <= tmp_arr[j]->code) array_index[k++] = tmp_arr[i++];
+    else array_index[k++] = tmp_arr[j++];
+  }
+  while (i <= right1)
+    array_index[k++] = tmp_arr[i++];
+  while (j <= right2)
+    array_index[k++] = tmp_arr[j++];
+}
+
+
 // quick sort
-int show(int array[]);
 
 void swap(ADDRESS **x, ADDRESS **y)
 {
@@ -56,26 +90,26 @@ void swap(ADDRESS **x, ADDRESS **y)
 
 int partition(ADDRESS **array_index, int left, int right)
 {
-  int i, j;
-  i = left;
-  j = right;
-  int pivot_value = array_index[(left + right) / 2]->code; // 中央の要素をpivotとする
+  int i = left;
+  int pivot_value = array_index[right]->code; // 右の要素をpivotとする
 
-  do
-  {
-    while (array_index[i]->code < pivot_value){
+  for (int j = left; j < right; j++){
+    if (array_index[j]->code < pivot_value)
+    {
+      swap(&array_index[i], &array_index[j]);
       i++;
     }
-    while (array_index[j]->code > pivot_value){
-      j--;
-    }
-    // pivotより小さいものを左へ、大きいものを右へ
-    swap(&array_index[i], &array_index[j]);
-    // show(array);
-  } while (i < j);
-  swap(&array_index[i], &array_index[j]);
+  }
+  swap(&array_index[i], &array_index[right]);
 
-  return j;
+  return i;
+}
+
+void show(ADDRESS **array_index){
+  for (int i=0; i<MAX_SIZE; i++){
+    printf("%d : %d (%s)\n", i, array_index[i]->code, array_index[i]->town);
+  }
+  printf("\n");
 }
 
 int quick_sort(ADDRESS **array_index, int left, int right)
@@ -85,12 +119,18 @@ int quick_sort(ADDRESS **array_index, int left, int right)
   if (left < right)
   {
     j = partition(array_index, left, right);
-    // printf("partition\n");
-    // show(array);
-    // printf("j :%d\n\n",j);
+    // printf("j = %d partition\n", j);
+    // show(array_index);
     quick_sort(array_index, left, j - 1);
     quick_sort(array_index, j + 1, right);
   }
+}
+
+// comp for qsort()
+int comp_int(const void *vxp, const void *vyp){
+  ADDRESS *xp = *(ADDRESS**) vxp;
+  ADDRESS *yp = *(ADDRESS**) vyp;
+  return xp->code - yp->code;
 }
 
 // 住所データファイルを読み取り，配列に保存
@@ -120,12 +160,14 @@ void scan()
     address_index[line] = &address_data[line];
     line++;
   }
-  quick_sort(address_index, 0, 772);
-  printf("sorted code\n");
-  for (int i = 0; i < 10; i++)
-  {
-    printf("%d : %d\n", i, address_index[i]->code );
-  }
+  // quick_sort(address_index, 0, MAX_SIZE - 1);
+  // mergesort(address_index, 0, MAX_SIZE - 1);
+  qsort(address_index, line-1, sizeof(ADDRESS *), comp_int);
+  // printf("sorted code\n");
+  // for (int i = 0; i < 10; i++)
+  // {
+  //   printf("%d : %d (%s)\n", i, address_index[i]->code, address_index[i]->town);
+  // }
   
   fclose(fp);
 }
@@ -147,9 +189,44 @@ void init()
   printf("\n### %f sec for initialization. ###\n",diff_time(t1,t2));
 }
 
+int binary_search(int search_code, int left, int right){
+  int half;
+  while (left <= right){
+    half = (left+right)/2;
+    if (search_code < address_index[half]->code){
+      right = half-1;
+    }
+    if (search_code > address_index[half]->code){
+      left = half+1;
+    }
+    if (search_code == address_index[half]->code){
+      return half;
+    }
+  }
+  return -1;
+}
+
+void search_around(int index, int *left, int *right){
+  *left = index;
+  while (address_index[*left-1]->code == address_index[index]->code)  (*left)--;
+  *right = index;
+  while (address_index[*right + 1]->code == address_index[index]->code) (*right)++;
+}
+
 // 郵便番号による住所検索．検索結果を出力．
 void code_search()
 {
+  int search_code = atoi(query);
+  int result = binary_search(search_code, 0, MAX_SIZE - 1);
+  if (result != -1){
+    int left , right;
+    search_around(result, &left, &right);
+    for (int i = left; i <= right; i++){
+      printf("%07d:%s%s%s\n", address_index[i]->code, address_index[i]->pref, address_index[i]->city, address_index[i]->town);
+    }
+  }else{
+    printf("ERROR\n");
+  }
   return;
 }
 
