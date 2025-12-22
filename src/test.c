@@ -22,6 +22,6 @@
 #define QUERY_REFINE 4
 
 int main(){
-  char c[] = "北";
-  printf("%d", sizeof(c));
+  char c[] = "北道吹";
+  printf("%x", c[8]);
 }

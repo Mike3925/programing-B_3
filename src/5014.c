@@ -31,12 +31,24 @@ int refine_flag;  // 絞り込み検索の有無 0:なし，1:あり
 char query[ALEN]; // 検索クエリ（郵便番号or文字列）
 typedef struct address{
   int code; //郵便番号
-  char pref[13]; //都道府県 MAX 4 x 3
+  char *pref;  //char pref[13]; //都道府県 MAX 4 x 3
   char city[35]; //市町村 MAX 10 x 3
   char town[120]; //町域 MAX 38 x 3
 } ADDRESS; // データ記録用構造体
 ADDRESS address_data[MAX_SIZE];
 ADDRESS *address_index[MAX_SIZE];
+// メモリ節約用都道府県名データ(jisコード順)
+char pref_names[47][17] = {
+    "北海道", "青森県", "岩手県", "宮城県", "秋田県",
+    "山形県", "福島県", "茨城県", "栃木県", "群馬県",
+    "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県",
+    "富山県", "石川県", "福井県", "山梨県", "長野県",
+    "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県",
+    "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+    "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+    "徳島県", "香川県", "愛媛県", "高知県", "福岡県",
+    "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県",
+    "鹿児島県", "沖縄県"};
 
 // merge sort
 void mergesort(ADDRESS **array_index, int left, int right);
@@ -133,12 +145,18 @@ int comp_int(const void *vxp, const void *vyp){
   return xp->code - yp->code;
 }
 
+// set_pref_address
+void set_pref_p(int jis_code, int line){
+  address_data[line].pref = pref_names[jis_code - 1];
+}
+
 // 住所データファイルを読み取り，配列に保存
 void scan()
 {
   FILE *fp;
   long line = 0;
-  char code[CLEN + 1], pref[ALEN + 1], city[ALEN + 1], town[ALEN + 1]; // tmp[ALEN+1];
+  char jis[6], code[CLEN + 1], city[ALEN + 1], town[ALEN + 1]; // tmp[ALEN+1];
+  int jis_code;
 
   // datasizeの計算
   if ((fp = fopen(DATAFILE, "r")) == NULL)
@@ -146,15 +164,17 @@ void scan()
     fprintf(stderr, "error:cannot read %s\n", DATAFILE);
     exit(-1);
   }
-  while (fscanf(fp, "%*[^,],%*[^,],\"%[^\"]\",%*[^,],%*[^,],%*[^,],\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%*s", code, pref, city, town) != EOF)
+  while (fscanf(fp, "%[^,],%*[^,],\"%[^\"]\",%*[^,],%*[^,],%*[^,],\"%*[^\"]\",\"%[^\"]\",\"%[^\"]\",%*s", jis, code, city, town) != EOF)
   {
     /*
       上のfscanfにより，code,pref,city,townにそれぞれ郵便番号，都道府県，市町村，町域を表す
       文字列が記憶される．この箇所にコードを加筆し，
 　　　これらの情報を用いて構造体の配列に住所データを記憶させる．
      */
+    jis_code = atoi(jis)/1000; //5桁のjisコードから都道府県コードを抽出
     address_data[line].code = atoi(code);
-    strcpy(address_data[line].pref, pref);
+    set_pref_p(jis_code, line);
+    // strcpy(address_data[line].pref, pref);
     strcpy(address_data[line].city, city);
     strcpy(address_data[line].town, town);
     address_index[line] = &address_data[line];
@@ -186,7 +206,7 @@ void init()
   t1 = clock();
   scan();
   t2 = clock();
-  printf("\n### %f sec for initialization. ###\n",diff_time(t1,t2));
+  // printf("\n### %f sec for initialization. ###\n",diff_time(t1,t2));
 }
 
 int binary_search(int search_code, int left, int right){
@@ -230,9 +250,110 @@ void code_search()
   return;
 }
 
+int pref_search(int line, int* query_index){
+  int current_line_index = 0;
+  int memory_query_index = *query_index; //バックアップ
+  int isHit = 0;
+  while (address_index[line]->pref[current_line_index] != '\0' && address_index[line]->pref[current_line_index] != query[*query_index])
+  { // queryの先頭文字と一致するまで、動かす
+    current_line_index++;
+  }
+  if (address_index[line]->pref[current_line_index] == query[*query_index])
+  {
+    isHit = 1;
+  }
+  if (isHit)
+  {
+    // 単語がヒットしたなら
+    while (address_index[line]->pref[current_line_index] == query[*query_index] && address_index[line]->pref[current_line_index] != '\0' && query[*query_index] != '\0')
+    { // query と一致する間動かし続ける
+      current_line_index++;
+      (*query_index)++;
+    }
+    if (address_index[line]->pref[current_line_index] == '\0' || query[*query_index] == '\0')
+    { // queryの終わりまで読み込んだか、prefの終わりまでいったかのどちらか
+      return 1;
+    }
+  }
+  *query_index = memory_query_index; //ロールバック
+  return 0;
+}
+
+int city_search(int line, int* query_index){
+  int current_line_index = 0;
+  int memory_query_index = *query_index; // バックアップ
+  if (query[*query_index] == '\0')
+  {
+    return 1;
+  }
+  while (address_index[line]->city[current_line_index] != '\0' && address_index[line]->city[current_line_index] != query[*query_index])
+  { // queryの先頭文字と一致するまで、動かす
+    current_line_index++;
+  }
+  if (address_index[line]->city[current_line_index] != '\0')
+  {
+    // 語末でないなら
+    while (address_index[line]->city[current_line_index] == query[*query_index] && address_index[line]->city[current_line_index] != '\0' && query[*query_index] != '\0')
+    { // query と一致する間動かし続ける
+      current_line_index++;
+      (*query_index)++;
+    }
+    if (query[*query_index] == '\0')
+    { // queryの終わりまで読み込んだか、cityの終わりまでいったかのどちらか
+      return 1;
+    }
+  }
+  *query_index = memory_query_index; // ロールバック
+  return 0;
+}
+
+int town_search(int line, int *query_index){
+  int current_line_index = 0;
+  int memory_query_index = *query_index; // バックアップ
+  if (query[*query_index] == '\0')
+  {
+    return 1;
+  }
+  while (address_index[line]->town[current_line_index] != '\0' && address_index[line]->town[current_line_index] != query[*query_index])
+  { // queryの先頭文字と一致するまで、動かす
+    current_line_index++;
+  }
+  if (address_index[line]->town[current_line_index] != '\0')
+  {
+    // 語末でないなら
+    while (address_index[line]->town[current_line_index] == query[*query_index] && address_index[line]->town[current_line_index] != '\0' && query[*query_index] != '\0')
+    { // query と一致する間動かし続ける
+      current_line_index++;
+      (*query_index)++;
+    }
+    if (query[*query_index] == '\0')
+    { // queryの終わりまで読み込んだか、townの終わりまでいったかのどちらか
+      return 1;
+    }
+  }
+  *query_index = memory_query_index; // ロールバック
+  return 0;
+}
+
 // 文字列による住所検索．検索結果を出力．
 void address_search()
 {
+  int current_line_index = 0;
+  int hit_index_list[MAX_SIZE];
+  memset(hit_index_list, -1, sizeof(hit_index_list));
+  int hit_list_index = 0;
+  int query_index = 0;
+
+  for (int line = 0; line < MAX_SIZE; line++){
+    // 各行に対して処理を行う
+    if (pref_search(line, &query_index) && city_search(line, &query_index) && town_search(line, &query_index))
+    {
+      hit_list_index++;
+    }
+
+    query_index = 0;
+  }
+  printf("%d\n", hit_list_index);
   return;
 }
 
@@ -418,7 +539,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    // respond();
+    respond();
   }
   return 0;
 }

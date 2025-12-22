@@ -1,2 +1,3 @@
-
-#define DATAFILE "csv/data_utf.csv"
+while ((strcmp(pref, pref_names[i]) != 0)){
+  //   i++;
+  // }
