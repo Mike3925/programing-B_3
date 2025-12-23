@@ -237,11 +237,15 @@ void code_search()
   {
     return;
   }
-  ADDRESS *address_search[MAX_SIZE];
-  for (int i=0; i< MAX_SIZE; i++){
-    address_search[i] = &address_data[i];
+  static int isSorted = 0;
+  static ADDRESS *address_search[MAX_SIZE];
+  if (!(isSorted)){
+    for (int i=0; i< MAX_SIZE; i++){
+      address_search[i] = &address_data[i];
+    }
+    quick_sort(address_search, 0, MAX_SIZE - 1);
+    isSorted = 1;
   }
-  quick_sort(address_search, 0, MAX_SIZE - 1);
   int search_code = atoi(query);
   int result = binary_search(search_code, 0, MAX_SIZE - 1, address_search);
   if (result != -1){
@@ -259,23 +263,8 @@ void code_search()
 int isPref(){
   for (int i = 0; i < 47; i++)
   {
-    int current_line_index = 0;
-    int query_index = 0;
-    while (query[query_index] != pref_names[i][current_line_index] && current_line_index <= 2)
-    { // 都道府県の最初の1文字とquery[0]を比較
-      current_line_index++;
-    }
-    if (current_line_index > 2)
-    {
-      continue;
-    }
-    while (pref_names[i][current_line_index] == query[query_index] && pref_names[i][current_line_index] != '\0' && query[query_index] != '\0')
-    {
-      current_line_index++;
-      query_index++;
-    }
-    if (pref_names[i][current_line_index] == '\0')
-    {
+    char *hit_pointer = strstr(query, pref_names[i]);
+    if (hit_pointer != NULL){
       return 1;
     }
   }

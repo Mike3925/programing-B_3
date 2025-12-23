@@ -144,9 +144,13 @@ int main(int argc, char **argv)
   memset(address_data, 0, sizeof(address_data)); // 構造体の初期化
   // input(query);
   // scan(address_data);
-  char query[] = "長崎県";
-  int a = isPref(query);
-  printf("%d",a);
+  char query[] = "岡山県";
+  char *result = strstr(pref_names[41], query);
+  if (result != NULL){
+    printf("%s", result);
+  }
+  // int a = isPref(query);
+  // printf("%d",a);
 
   return 0;
 }
