@@ -17,7 +17,7 @@
 #define MAX_SIZE 124340// 住所録中の住所数の最大数
 
 // #define DATAFILE "csv/light.csv"
-// #define MAX_SIZE 10 // 住所録中の住所数の最大数
+// #define MAX_SIZE 2 // 住所録中の住所数の最大数
 
 // 動作確認で使うファイル実行モードで使う定数。修正不要
 #define STANDBY_MAIN 0
@@ -32,8 +32,8 @@ char query[ALEN]; // 検索クエリ（郵便番号or文字列）
 typedef struct address{
   int code; //郵便番号
   char *pref;  //char pref[13]; //都道府県 MAX 4 x 3
-  char city[35]; //市町村 MAX 10 x 3
-  char town[120]; //町域 MAX 38 x 3
+  char city[32]; //市町村 MAX 10 x 3
+  char town[116]; //町域 MAX 38 x 3
 } ADDRESS; // データ記録用構造体
 ADDRESS address_data[MAX_SIZE];
 ADDRESS *address_index[MAX_SIZE];
@@ -181,8 +181,8 @@ void scan()
     line++;
   }
   // quick_sort(address_index, 0, MAX_SIZE - 1);
-  // mergesort(address_index, 0, MAX_SIZE - 1);
-  qsort(address_index, line-1, sizeof(ADDRESS *), comp_int);
+  mergesort(address_index, 0, MAX_SIZE - 1);
+  // qsort(address_index, line-1, sizeof(ADDRESS *), comp_int);
   // printf("sorted code\n");
   // for (int i = 0; i < 10; i++)
   // {
@@ -236,6 +236,10 @@ void search_around(int index, int *left, int *right){
 // 郵便番号による住所検索．検索結果を出力．
 void code_search()
 {
+  if (query[0] == '\0' || query[0] == '\n')
+  {
+    return;
+  }
   int search_code = atoi(query);
   int result = binary_search(search_code, 0, MAX_SIZE - 1);
   if (result != -1){
@@ -252,30 +256,32 @@ void code_search()
 
 int pref_search(int line, int* query_index){
   int current_line_index = 0;
-  int memory_query_index = *query_index; //バックアップ
-  int isHit = 0;
-  while (address_index[line]->pref[current_line_index] != '\0' && address_index[line]->pref[current_line_index] != query[*query_index])
-  { // queryの先頭文字と一致するまで、動かす
-    current_line_index++;
-  }
-  if (address_index[line]->pref[current_line_index] == query[*query_index])
+  int memory_query_index = *query_index; // バックアップ
+  if (query[*query_index] == '\0' || query[*query_index] == '\n')
   {
-    isHit = 1;
+    return 0;
   }
-  if (isHit)
+  while (address_index[line]->pref[current_line_index] != '\0' && query[*query_index] != '\0')
   {
-    // 単語がヒットしたなら
-    while (address_index[line]->pref[current_line_index] == query[*query_index] && address_index[line]->pref[current_line_index] != '\0' && query[*query_index] != '\0')
-    { // query と一致する間動かし続ける
+    while (address_index[line]->pref[current_line_index] != '\0' && address_index[line]->pref[current_line_index] != query[*query_index])
+    { // queryの先頭文字と一致するまで、動かす
       current_line_index++;
-      (*query_index)++;
     }
-    if (address_index[line]->pref[current_line_index] == '\0' || query[*query_index] == '\0')
-    { // queryの終わりまで読み込んだか、prefの終わりまでいったかのどちらか
-      return 1;
+    if (address_index[line]->pref[current_line_index] == query[*query_index])
+    { // 単語がヒットしたなら
+      while (address_index[line]->pref[current_line_index] == query[*query_index] && address_index[line]->pref[current_line_index] != '\0' && query[*query_index] != '\0')
+      { // query と一致する間動かし続ける
+        current_line_index++;
+        (*query_index)++;
+      }
+      if (address_index[line]->pref[current_line_index] == '\0' || query[*query_index] == '\0')
+      { // queryの終わりまで読み込んだか、prefの終わりまでいったかのどちらか
+        // printf("pref\n");
+        return 1;
+      }
     }
+    *query_index = memory_query_index; // ロールバック
   }
-  *query_index = memory_query_index; //ロールバック
   return 0;
 }
 
@@ -286,24 +292,27 @@ int city_search(int line, int* query_index){
   {
     return 1;
   }
-  while (address_index[line]->city[current_line_index] != '\0' && address_index[line]->city[current_line_index] != query[*query_index])
-  { // queryの先頭文字と一致するまで、動かす
-    current_line_index++;
-  }
-  if (address_index[line]->city[current_line_index] != '\0')
+  while (address_index[line]->city[current_line_index] != '\0' && query[*query_index] != '\0')
   {
-    // 語末でないなら
-    while (address_index[line]->city[current_line_index] == query[*query_index] && address_index[line]->city[current_line_index] != '\0' && query[*query_index] != '\0')
-    { // query と一致する間動かし続ける
+    while (address_index[line]->city[current_line_index] != '\0' && address_index[line]->city[current_line_index] != query[*query_index])
+    { // queryの先頭文字と一致するまで、動かす
       current_line_index++;
-      (*query_index)++;
     }
-    if (query[*query_index] == '\0')
-    { // queryの終わりまで読み込んだか、cityの終わりまでいったかのどちらか
-      return 1;
+    if (address_index[line]->city[current_line_index] == query[*query_index])
+    { // 単語がヒットしたなら
+      while (address_index[line]->city[current_line_index] == query[*query_index] && address_index[line]->city[current_line_index] != '\0' && query[*query_index] != '\0')
+      { // query と一致する間動かし続ける
+        current_line_index++;
+        (*query_index)++;
+      }
+      if (address_index[line]->city[current_line_index] == '\0' || query[*query_index] == '\0')
+      { // queryの終わりまで読み込んだか、cityの終わりまでいったかのどちらか
+        // printf("city\n");
+        return 1;
+      }
     }
+    *query_index = memory_query_index; // ロールバック
   }
-  *query_index = memory_query_index; // ロールバック
   return 0;
 }
 
@@ -314,24 +323,25 @@ int town_search(int line, int *query_index){
   {
     return 1;
   }
-  while (address_index[line]->town[current_line_index] != '\0' && address_index[line]->town[current_line_index] != query[*query_index])
-  { // queryの先頭文字と一致するまで、動かす
-    current_line_index++;
-  }
-  if (address_index[line]->town[current_line_index] != '\0')
-  {
-    // 語末でないなら
-    while (address_index[line]->town[current_line_index] == query[*query_index] && address_index[line]->town[current_line_index] != '\0' && query[*query_index] != '\0')
-    { // query と一致する間動かし続ける
+  while (address_index[line]->town[current_line_index] != '\0' && query[*query_index] != '\0'){
+    while (address_index[line]->town[current_line_index] != '\0' && address_index[line]->town[current_line_index] != query[*query_index])
+    { // queryの先頭文字と一致するまで、動かす
       current_line_index++;
-      (*query_index)++;
     }
-    if (query[*query_index] == '\0')
-    { // queryの終わりまで読み込んだか、townの終わりまでいったかのどちらか
-      return 1;
+    if (address_index[line]->town[current_line_index] == query[*query_index])
+    { //単語がヒットしたなら
+      while (address_index[line]->town[current_line_index] == query[*query_index] && address_index[line]->town[current_line_index] != '\0' && query[*query_index] != '\0')
+      { // query と一致する間動かし続ける
+        current_line_index++;
+        (*query_index)++;
+      }
+      if (address_index[line]->town[current_line_index] == '\0' || query[*query_index] == '\0')
+      { // queryの終わりまで読み込んだか、townの終わりまでいったかのどちらか
+        return 1;
+      }
     }
+    *query_index = memory_query_index; // ロールバック
   }
-  *query_index = memory_query_index; // ロールバック
   return 0;
 }
 
@@ -344,16 +354,28 @@ void address_search()
   int hit_list_index = 0;
   int query_index = 0;
 
+  if (query[0] == '\0' || query[0] == '\n')
+  {
+    return;
+  }
   for (int line = 0; line < MAX_SIZE; line++){
     // 各行に対して処理を行う
-    if (pref_search(line, &query_index) && city_search(line, &query_index) && town_search(line, &query_index))
+    // printf("%07d:%s%s%s\n", address_index[line]->code, address_index[line]->pref, address_index[line]->city, address_index[line]->town);
+    // int isHitPref = pref_search(line, &query_index);
+    // int isHitCity = city_search(line, &query_index);
+    // int isHitTown = town_search(line, &query_index);
+    if ((pref_search(line, &query_index) && city_search(line, &query_index) && town_search(line, &query_index)) && query[query_index] == '\0')
     {
+      hit_index_list[hit_list_index] = line;
       hit_list_index++;
     }
-
     query_index = 0;
   }
-  printf("%d\n", hit_list_index);
+  for (int i = 0; i < hit_list_index; i++)
+  {
+    printf("%07d:%s%s%s\n", address_index[hit_index_list[i]]->code, address_index[hit_index_list[i]]->pref, address_index[hit_index_list[i]]->city, address_index[hit_index_list[i]]->town);
+  }
+  // printf("%d\n", hit_list_index);
   return;
 }
 

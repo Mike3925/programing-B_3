@@ -21,7 +21,29 @@
 #define STANDBY_REFINE 3
 #define QUERY_REFINE 4
 
-int main(){
-  char c[] = "北道吹";
-  printf("%x", c[8]);
+int a(){
+  printf("a\n");
+  return 1;
+}
+
+int b()
+{
+  printf("b\n");
+  return 1;
+}
+
+int c()
+{
+  printf("c\n");
+  return 1;
+}
+
+int main()
+{
+  SetConsoleOutputCP(65001);
+  if ((a() || b()) && c()){
+    printf("IF\n");
+  }
+
+  return 0;
 }
