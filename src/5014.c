@@ -36,7 +36,6 @@ typedef struct address{
   char town[116]; //町域 MAX 38 x 3
 } ADDRESS; // データ記録用構造体
 ADDRESS address_data[MAX_SIZE];
-ADDRESS *address_index[MAX_SIZE];
 // メモリ節約用都道府県名データ(jisコード順)
 char pref_names[47][17] = {
     "北海道", "青森県", "岩手県", "宮城県", "秋田県",
@@ -100,7 +99,7 @@ void swap(ADDRESS **x, ADDRESS **y)
   // printf("second y %x\n", y);
 }
 
-int partition(ADDRESS **array_index, int left, int right)
+int partition(ADDRESS *array_index[], int left, int right)
 {
   int i = left;
   int pivot_value = array_index[right]->code; // 右の要素をpivotとする
@@ -124,7 +123,7 @@ void show(ADDRESS **array_index){
   printf("\n");
 }
 
-int quick_sort(ADDRESS **array_index, int left, int right)
+int quick_sort(ADDRESS *array_index[], int left, int right)
 {
   int j;
 
@@ -177,11 +176,9 @@ void scan()
     // strcpy(address_data[line].pref, pref);
     strcpy(address_data[line].city, city);
     strcpy(address_data[line].town, town);
-    address_index[line] = &address_data[line];
     line++;
   }
-  // quick_sort(address_index, 0, MAX_SIZE - 1);
-  mergesort(address_index, 0, MAX_SIZE - 1);
+  // mergesort(address_index, 0, MAX_SIZE - 1);
   // qsort(address_index, line-1, sizeof(ADDRESS *), comp_int);
   // printf("sorted code\n");
   // for (int i = 0; i < 10; i++)
@@ -209,7 +206,7 @@ void init()
   // printf("\n### %f sec for initialization. ###\n",diff_time(t1,t2));
 }
 
-int binary_search(int search_code, int left, int right){
+int binary_search(int search_code, int left, int right, ADDRESS *address_index[]){
   int half;
   while (left <= right){
     half = (left+right)/2;
@@ -226,7 +223,7 @@ int binary_search(int search_code, int left, int right){
   return -1;
 }
 
-void search_around(int index, int *left, int *right){
+void search_around(int index, int *left, int *right, ADDRESS *address_index[]){
   *left = index;
   while (address_index[*left-1]->code == address_index[index]->code)  (*left)--;
   *right = index;
@@ -240,13 +237,18 @@ void code_search()
   {
     return;
   }
+  ADDRESS *address_search[MAX_SIZE];
+  for (int i=0; i< MAX_SIZE; i++){
+    address_search[i] = &address_data[i];
+  }
+  quick_sort(address_search, 0, MAX_SIZE - 1);
   int search_code = atoi(query);
-  int result = binary_search(search_code, 0, MAX_SIZE - 1);
+  int result = binary_search(search_code, 0, MAX_SIZE - 1, address_search);
   if (result != -1){
     int left , right;
-    search_around(result, &left, &right);
+    search_around(result, &left, &right, address_search);
     for (int i = left; i <= right; i++){
-      printf("%07d:%s%s%s\n", address_index[i]->code, address_index[i]->pref, address_index[i]->city, address_index[i]->town);
+      printf("%07d:%s%s%s\n", address_search[i]->code, address_search[i]->pref, address_search[i]->city, address_search[i]->town);
     }
   }else{
     printf("ERROR\n");
@@ -254,7 +256,7 @@ void code_search()
   return;
 }
 
-int pref_search(int line, int* query_index){
+int pref_search(int line, int* query_index, ADDRESS **address_index){
   int current_line_index = 0;
   int memory_query_index = *query_index; // バックアップ
   if (query[*query_index] == '\0' || query[*query_index] == '\n')
@@ -285,7 +287,8 @@ int pref_search(int line, int* query_index){
   return 0;
 }
 
-int city_search(int line, int* query_index){
+int city_search(int line, int *query_index, ADDRESS **address_index)
+{
   int current_line_index = 0;
   int memory_query_index = *query_index; // バックアップ
   if (query[*query_index] == '\0')
@@ -316,7 +319,8 @@ int city_search(int line, int* query_index){
   return 0;
 }
 
-int town_search(int line, int *query_index){
+int town_search(int line, int *query_index, ADDRESS **address_index)
+{
   int current_line_index = 0;
   int memory_query_index = *query_index; // バックアップ
   if (query[*query_index] == '\0')
@@ -348,23 +352,29 @@ int town_search(int line, int *query_index){
 // 文字列による住所検索．検索結果を出力．
 void address_search()
 {
+  if (query[0] == '\0' || query[0] == '\n')
+  {
+    return;
+  }
+
+  ADDRESS *address_search[MAX_SIZE];
+  for (int i = 0; i < MAX_SIZE; i++)
+  {
+    address_search[i] = &address_data[i];
+  }
   int current_line_index = 0;
   int hit_index_list[MAX_SIZE];
   memset(hit_index_list, -1, sizeof(hit_index_list));
   int hit_list_index = 0;
   int query_index = 0;
 
-  if (query[0] == '\0' || query[0] == '\n')
-  {
-    return;
-  }
   for (int line = 0; line < MAX_SIZE; line++){
     // 各行に対して処理を行う
     // printf("%07d:%s%s%s\n", address_index[line]->code, address_index[line]->pref, address_index[line]->city, address_index[line]->town);
     // int isHitPref = pref_search(line, &query_index);
     // int isHitCity = city_search(line, &query_index);
     // int isHitTown = town_search(line, &query_index);
-    if ((pref_search(line, &query_index) && city_search(line, &query_index) && town_search(line, &query_index)) && query[query_index] == '\0')
+    if ((pref_search(line, &query_index, address_search) && city_search(line, &query_index, address_search) && town_search(line, &query_index, address_search)) && query[query_index] == '\0')
     {
       hit_index_list[hit_list_index] = line;
       hit_list_index++;
@@ -373,7 +383,7 @@ void address_search()
   }
   for (int i = 0; i < hit_list_index; i++)
   {
-    printf("%07d:%s%s%s\n", address_index[hit_index_list[i]]->code, address_index[hit_index_list[i]]->pref, address_index[hit_index_list[i]]->city, address_index[hit_index_list[i]]->town);
+    printf("%07d:%s%s%s\n", address_search[hit_index_list[i]]->code, address_search[hit_index_list[i]]->pref, address_search[hit_index_list[i]]->city, address_search[hit_index_list[i]]->town);
   }
   // printf("%d\n", hit_list_index);
   return;
