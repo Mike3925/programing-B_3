@@ -358,19 +358,48 @@ void address_search()
   {
     return;
   }
-  for (int line = 0; line < MAX_SIZE; line++){
+  int current_line_index = 0;
+  int hit_index_list[MAX_SIZE];
+  memset(hit_index_list, -1, sizeof(hit_index_list));
+  int hit_list_index = 0;
+  int isPrefHit = isPref();
+  int line = 0;
+
+  if (isPrefHit)
+  {
+    while (!(pref_search(line)))
+    {
+      line++;
+    }
+    while (line < MAX_SIZE)
+    {
+      if (line_search(line))
+      {
+        hit_index_list[hit_list_index] = line;
+        hit_list_index++;
+      }
+      if (pref_search(line))
+      {
+        break;
+      }
+      line++;
+    }
+  }
+  while (line < MAX_SIZE)
+  {
     // 各行に対して処理を行う
     // printf("%07d:%s%s%s\n", address_index[line]->code, address_index[line]->pref, address_index[line]->city, address_index[line]->town);
     // int isHitPref = pref_search(line, &query_index);
     // int isHitCity = city_search(line, &query_index);
     // int isHitTown = town_search(line, &query_index);
-    if ((pref_search(line, &query_index) && city_search(line, &query_index) && town_search(line, &query_index)) && query[query_index] == '\0')
+    if (line_search(line))
     {
       hit_index_list[hit_list_index] = line;
       hit_list_index++;
     }
-    query_index = 0;
+    line++;
   }
+  
   for (int i = 0; i < hit_list_index; i++)
   {
     printf("%07d:%s%s%s\n", address_index[hit_index_list[i]]->code, address_index[hit_index_list[i]]->pref, address_index[hit_index_list[i]]->city, address_index[hit_index_list[i]]->town);
