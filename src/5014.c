@@ -116,10 +116,14 @@ int binary_search(int search_code, int left, int right, ADDRESS *address_index[]
 }
 
 void search_around(int index, int *left, int *right, ADDRESS *address_index[]){
-  *left = index;
-  while (address_index[*left-1]->code == address_index[index]->code)  (*left)--;
-  *right = index;
-  while (address_index[*right + 1]->code == address_index[index]->code) (*right)++;
+  if (index > 0){
+    *left = index;
+    while (address_index[*left-1]->code == address_index[index]->code)  (*left)--;
+  }
+  if (index < MAX_SIZE - 1){
+    *right = index;
+    while (address_index[*right + 1]->code == address_index[index]->code) (*right)++;
+  }
 }
 
 // comp for qsort()
@@ -207,7 +211,7 @@ void address_search()
   {
     return;
   }
-  int hit_index_list[MAX_SIZE];
+  static int hit_index_list[MAX_SIZE];
   memset(hit_index_list, -1, sizeof(hit_index_list));
   int hit_list_index = 0;
   int query_index = 0;
@@ -249,6 +253,7 @@ void address_search()
   {
     printf("%07d:%s%s%s\n", address_data[hit_index_list[i]].code, address_data[hit_index_list[i]].pref, address_data[hit_index_list[i]].city, address_data[hit_index_list[i]].town);
   }
+  printf("%d\n", hit_list_index);
   // printf("%d\n", hit_list_index);
   return;
 }
