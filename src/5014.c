@@ -197,7 +197,7 @@ int pref_search(int line)
 
 int comp_code(const void *a, const void *b){
   // printf("%d\n", *(int *)a);
-  return *(int *)a - *(int *)b;
+  return address_data[*(int *)a].code - address_data[*(int *)b].code;
 }
 
 // 文字列による住所検索．検索結果を出力．
