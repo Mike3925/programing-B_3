@@ -21,28 +21,17 @@
 #define STANDBY_REFINE 3
 #define QUERY_REFINE 4
 
-int a(){
-  printf("a\n");
-  return 1;
-}
-
-int b()
-{
-  printf("b\n");
-  return 1;
-}
-
-int c()
-{
-  printf("c\n");
-  return 1;
+int comp(const void *a, const void *b){
+  return *(int *)a - *(int *)b;
 }
 
 int main()
 {
+  int s[] = {1,35,6,2,67,0,0,0,0};
   SetConsoleOutputCP(65001);
-  if ((a() || b()) && c()){
-    printf("IF\n");
+  qsort(s, 5, sizeof(int), comp);
+  for (int i=0; i<5;i++){
+    printf("%d\n", s[i]);
   }
 
   return 0;
