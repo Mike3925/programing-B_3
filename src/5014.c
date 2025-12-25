@@ -49,13 +49,6 @@ char pref_names[47][17] = {
     "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県",
     "鹿児島県", "沖縄県"};
 
-// comp for qsort()
-int comp_int(const void *vxp, const void *vyp){
-  ADDRESS *xp = *(ADDRESS**) vxp;
-  ADDRESS *yp = *(ADDRESS**) vyp;
-  return xp->code - yp->code;
-}
-
 // 住所データファイルを読み取り，配列に保存
 void scan()
 {
@@ -85,14 +78,6 @@ void scan()
     strcpy(address_data[line].town, town);
     line++;
   }
-  // mergesort(address_index, 0, MAX_SIZE - 1);
-  // qsort(address_index, line-1, sizeof(ADDRESS *), comp_int);
-  // printf("sorted code\n");
-  // for (int i = 0; i < 10; i++)
-  // {
-  //   printf("%d : %d (%s)\n", i, address_index[i]->code, address_index[i]->town);
-  // }
-  
   fclose(fp);
 }
 
@@ -137,6 +122,14 @@ void search_around(int index, int *left, int *right, ADDRESS *address_index[]){
   while (address_index[*right + 1]->code == address_index[index]->code) (*right)++;
 }
 
+// comp for qsort()
+int comp_adr(const void *vxp, const void *vyp)
+{
+  ADDRESS *xp = *(ADDRESS **)vxp;
+  ADDRESS *yp = *(ADDRESS **)vyp;
+  return xp->code - yp->code;
+}
+
 // 郵便番号による住所検索．検索結果を出力．
 void code_search()
 {
@@ -150,7 +143,7 @@ void code_search()
     for (int i=0; i< MAX_SIZE; i++){
       address_search[i] = &address_data[i];
     }
-    quick_sort(address_search, 0, MAX_SIZE - 1);
+    qsort(address_search, MAX_SIZE, sizeof(ADDRESS *), comp_adr);
     isSorted = 1;
   }
   int search_code = atoi(query);
