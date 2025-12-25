@@ -1,1 +1,3 @@
 /動作確認 課題3-09B25014-大坪祐清-Windows-utf8
+/動作確認 課題3-09B25014-大坪祐清-Linux-utf8
+手元のPC上の環境(Windows 11, Powershell, )では

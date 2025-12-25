@@ -8,13 +8,12 @@
 #include <windows.h>
 #endif
 
-
 #define ADVANCED 0 // 発展課題（絞り込み検索）に対応する場合は1に変更
 
-#define CLEN 9          // 郵便番号の最大バイト長
-#define ALEN 200        // 住所欄の最大バイト長
+#define CLEN 9   // 郵便番号の最大バイト長
+#define ALEN 200 // 住所欄の最大バイト長
 #define DATAFILE "csv/data_utf.csv"
-#define MAX_SIZE 124340// 住所録中の住所数の最大数
+#define MAX_SIZE 124340 // 住所録中の住所数の最大数
 
 // #define DATAFILE "csv/light.csv"
 // #define MAX_SIZE 2 // 住所録中の住所数の最大数
@@ -29,12 +28,13 @@
 int mode;         // 検索モード 0:なし，1:郵便番号検索，2:文字列検索
 int refine_flag;  // 絞り込み検索の有無 0:なし，1:あり
 char query[ALEN]; // 検索クエリ（郵便番号or文字列）
-typedef struct address{
-  int code; //郵便番号
-  char *pref;  //char pref[13]; //都道府県 MAX 4 x 3
-  char city[32]; //市町村 MAX 10 x 3
-  char town[116]; //町域 MAX 38 x 3
-} ADDRESS; // データ記録用構造体
+typedef struct address
+{
+  int code;       // 郵便番号
+  char *pref;     // char pref[13]; //都道府県 MAX 4 x 3
+  char city[32];  // 市町村 MAX 10 x 3
+  char town[116]; // 町域 MAX 38 x 3
+} ADDRESS;        // データ記録用構造体
 ADDRESS address_data[MAX_SIZE];
 // メモリ節約用都道府県名データ(jisコード順)
 char pref_names[47][17] = {
@@ -48,13 +48,14 @@ char pref_names[47][17] = {
     "徳島県", "香川県", "愛媛県", "高知県", "福岡県",
     "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県",
     "鹿児島県", "沖縄県"};
+int total_count = 0;
 
 // 住所データファイルを読み取り，配列に保存
 void scan()
 {
   FILE *fp;
   long line = 0;
-  char jis[6], code[CLEN + 1], city[ALEN + 1], town[ALEN + 1]; // tmp[ALEN+1];
+  char jis[8], code[CLEN + 1], city[ALEN + 1], town[ALEN + 1]; // Linux 環境では、なぜかjis[6]では動かない(Windows なら動いたのに...)
   int jis_code;
 
   // datasizeの計算
@@ -71,13 +72,14 @@ void scan()
 　　　これらの情報を用いて構造体の配列に住所データを記憶させる．
      */
     address_data[line].code = atoi(code);
-    jis_code = atoi(jis)/1000; //5桁のjisコードから都道府県コードを抽出
+    jis_code = atoi(jis) / 1000; // 5桁のjisコードから都道府県コードを抽出
     address_data[line].pref = pref_names[jis_code - 1];
-    // strcpy(address_data[line].pref, pref);
+    // strcpy(address_data[line].pref, pref_names[jis_code - 1]);
     strcpy(address_data[line].city, city);
     strcpy(address_data[line].town, town);
     line++;
   }
+  total_count = line;
   fclose(fp);
 }
 
@@ -89,7 +91,7 @@ double diff_time(clock_t t1, clock_t t2)
 // 初期化処理
 void init()
 {
-  memset(address_data, 0, sizeof(address_data)); //構造体の初期化
+  memset(address_data, 0, sizeof(address_data)); // 構造体の初期化
   clock_t t1, t2;
 
   t1 = clock();
@@ -98,31 +100,41 @@ void init()
   // printf("\n### %f sec for initialization. ###\n",diff_time(t1,t2));
 }
 
-int binary_search(int search_code, int left, int right, ADDRESS *address_index[]){
+int binary_search(int search_code, int left, int right, ADDRESS *address_index[])
+{
   int half;
-  while (left <= right){
-    half = (left+right)/2;
-    if (search_code < address_index[half]->code){
-      right = half-1;
+  while (left <= right)
+  {
+    half = (left + right) / 2;
+    if (search_code < address_index[half]->code)
+    {
+      right = half - 1;
     }
-    if (search_code > address_index[half]->code){
-      left = half+1;
+    if (search_code > address_index[half]->code)
+    {
+      left = half + 1;
     }
-    if (search_code == address_index[half]->code){
+    if (search_code == address_index[half]->code)
+    {
       return half;
     }
   }
   return -1;
 }
 
-void search_around(int index, int *left, int *right, ADDRESS *address_index[]){
-  if (index > 0){
+void search_around(int index, int *left, int *right, ADDRESS *address_index[])
+{
+  if (index > 0)
+  {
     *left = index;
-    while (address_index[*left-1]->code == address_index[index]->code)  (*left)--;
+    while (address_index[*left - 1]->code == address_index[index]->code)
+      (*left)--;
   }
-  if (index < MAX_SIZE - 1){
+  if (index < total_count - 1)
+  {
     *right = index;
-    while (address_index[*right + 1]->code == address_index[index]->code) (*right)++;
+    while (address_index[*right + 1]->code == address_index[index]->code)
+      (*right)++;
   }
 }
 
@@ -143,46 +155,44 @@ void code_search()
   }
   static int isSorted = 0;
   static ADDRESS *address_search[MAX_SIZE];
-  if (!(isSorted)){
-    for (int i=0; i< MAX_SIZE; i++){
+  if (!(isSorted))
+  {
+    for (int i = 0; i < total_count; i++)
+    {
       address_search[i] = &address_data[i];
     }
-    qsort(address_search, MAX_SIZE, sizeof(ADDRESS *), comp_adr);
+    qsort(address_search, total_count, sizeof(ADDRESS *), comp_adr);
     isSorted = 1;
   }
   int search_code = atoi(query);
-  int result = binary_search(search_code, 0, MAX_SIZE - 1, address_search);
-  if (result != -1){
-    int left , right;
+  int result = binary_search(search_code, 0, total_count - 1, address_search);
+  if (result != -1)
+  {
+    int left, right;
     search_around(result, &left, &right, address_search);
-    for (int i = left; i <= right; i++){
+    for (int i = left; i <= right; i++)
+    {
       printf("%07d:%s%s%s\n", address_search[i]->code, address_search[i]->pref, address_search[i]->city, address_search[i]->town);
     }
-  }else{
+  }
+  else
+  {
     printf("ERROR\n");
   }
   return;
 }
 
-int isPref()
-{
-  for (int i = 0; i < 47; i++)
-  {
-    char *hit_pointer = strstr(query, pref_names[i]);
-    if (hit_pointer != NULL)
-    {
-      return 1;
-    }
-  }
-  return 0;
-}
-
 int line_search(int line)
 {
-  char address_line[170];
-  strcpy(address_line, address_data[line].pref);
-  strcat(address_line, address_data[line].city);
-  strcat(address_line, address_data[line].town);
+  char address_line[1000];
+  if (address_data == NULL)
+  {
+    printf("%d\n", line);
+  }
+  snprintf(address_line, sizeof(address_line), "%s%s%s", address_data[line].pref, address_data[line].city, address_data[line].town);
+  // strcpy(address_line, address_data[line].pref);
+  // strcat(address_line, address_data[line].city);
+  // strcat(address_line, address_data[line].town);
   if (strstr(address_line, query) != NULL)
   {
     return 1;
@@ -199,7 +209,8 @@ int pref_search(int line)
   return 0;
 }
 
-int comp_code(const void *a, const void *b){
+int comp_code(const void *a, const void *b)
+{
   // printf("%d\n", *(int *)a);
   return address_data[*(int *)a].code - address_data[*(int *)b].code;
 }
@@ -207,46 +218,50 @@ int comp_code(const void *a, const void *b){
 // 文字列による住所検索．検索結果を出力．
 void address_search()
 {
-  if (query[0] == '\0' || query[0] == '\n')
-  {
-    return;
-  }
+  if (query[0] == '\0' || query[0] == '\n') return;
   static int hit_index_list[MAX_SIZE];
   memset(hit_index_list, -1, sizeof(hit_index_list));
   int hit_list_index = 0;
-  int query_index = 0;
-  int current_line_index = 0;
-  int isPrefHit = isPref();
-  int line = 0;
-
-  if (isPrefHit)
+  int pref_index = -1;
+  for (int i = 0; i < 47; i++)
   {
-    while (!(pref_search(line)))
+    if (strstr(query, pref_names[i]) != NULL)
     {
-      line++;
-    }
-    while (line < MAX_SIZE)
-    {
-      if (line_search(line))
-      {
-        hit_index_list[hit_list_index] = line;
-        hit_list_index++;
-      }
-      if (!(pref_search(line)))
-      {
-        break;
-      }
-      line++;
+      pref_index = i;
+      break;
     }
   }
-  while (line < MAX_SIZE)
-  {
-    if (line_search(line))
-    {
+
+  for (int line=0; line < total_count; line++){
+    if ((pref_index != -1) && address_data[line].pref != pref_names[pref_index]){
+      continue;
+    }
+    int isHit = 0;
+    
+    if (strstr(address_data[line].pref, query) != NULL){
+      isHit = 1;
+    }else if (strstr(address_data[line].city, query) != NULL){
+      isHit = 1;
+    }else if (strstr(address_data[line].town, query) != NULL){
+      isHit = 1;
+    }else{
+      char address_line[300];
+      snprintf(address_line, 
+        sizeof(address_line), 
+        "%s%s%s", 
+        address_data[line].pref, 
+        address_data[line].city, 
+        address_data[line].town);
+      if (strstr(address_line, query) != NULL)
+      {
+        isHit = 1;
+      }
+    }
+
+    if (isHit){
       hit_index_list[hit_list_index] = line;
       hit_list_index++;
     }
-    line++;
   }
   qsort(hit_index_list, hit_list_index, sizeof(int), comp_code);
   for (int i = 0; i < hit_list_index; i++)
@@ -425,11 +440,11 @@ void run_from_file(const char *filename)
 
 int main(int argc, char **argv)
 {
-  // コマンドプロンプト、PowerShellを端末、あるいはVSCodeの端末上で使っている人は以下の4行のコメントを外すこと
-  #ifndef __linux__
+// コマンドプロンプト、PowerShellを端末、あるいはVSCodeの端末上で使っている人は以下の4行のコメントを外すこと
+#ifndef __linux__
   SetConsoleOutputCP(CP_UTF8);
   SetConsoleCP(CP_UTF8);
-  #endif
+#endif
 
   setvbuf(stdout, NULL, _IONBF, 0);
   init();
