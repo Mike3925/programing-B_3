@@ -253,7 +253,6 @@ void address_search()
   {
     printf("%07d:%s%s%s\n", address_data[hit_index_list[i]].code, address_data[hit_index_list[i]].pref, address_data[hit_index_list[i]].city, address_data[hit_index_list[i]].town);
   }
-  printf("%d\n", hit_list_index);
   // printf("%d\n", hit_list_index);
   return;
 }
