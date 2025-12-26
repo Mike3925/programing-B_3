@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
@@ -21,43 +21,16 @@
 #define STANDBY_REFINE 3
 #define QUERY_REFINE 4
 
-int comp(const void *a, const void *b){
-  return *(int *)a - *(int *)b;
-}
+char pref_names[] = "北海道\0青森県\0岩手県\0宮城県\0秋田県\0山形県\0福島県\0茨城県\0栃木県\0群馬県\0埼玉県\0千葉県\0東京都\0神奈川県\0新潟県\0富山県\0石川県\0福井県\0山梨県\0長野県\0岐阜県\0静岡県\0愛知県\0三重県\0滋賀県\0京都府\0大阪府\0兵庫県\0奈良県\0和歌山県\0鳥取県\0島根県\0岡山県\0広島県\0山口県\0徳島県\0香川県\0愛媛県\0高知県\0福岡県\0佐賀県\0長崎県\0熊本県\0大分県\0宮崎県\0鹿児島県\0沖縄県\0";
 
-char pref_names[47][17] = {
-    "北海道", "青森県", "岩手県", "宮城県", "秋田県",
-    "山形県", "福島県", "茨城県", "栃木県", "群馬県",
-    "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県",
-    "富山県", "石川県", "福井県", "山梨県", "長野県",
-    "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県",
-    "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
-    "鳥取県", "島根県", "岡山県", "広島県", "山口県",
-    "徳島県", "香川県", "愛媛県", "高知県", "福岡県",
-    "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県",
-    "鹿児島県", "沖縄県"};
-
-char query[] = "山口県";
-
-int isPref()
+char *get_pref_index(char pref[])
 {
-  for (int i = 0; i < 47; i++)
-  {
-    char *hit_pointer = strstr(query, pref_names[i]);
-    if (hit_pointer != NULL)
-    {
-      return 1;
-    }
-  }
-  return 0;
+  char *pref_p = strstr(pref_names, pref);
+  return pref_p;
 }
 
 int main()
 {
-  SetConsoleOutputCP(65001);
-  if (isPref()){
-    printf("TRUE");
-  }else{
-    printf("FALSE");
-  }
+  char *p = get_pref_index("青森県");
+  printf("%s", p);
 };
