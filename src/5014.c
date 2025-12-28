@@ -8,7 +8,7 @@
 #include <windows.h>
 #endif
 
-#define ADVANCED 0 // 発展課題（絞り込み検索）に対応する場合は1に変更
+#define ADVANCED 1 // 発展課題（絞り込み検索）に対応する場合は1に変更
 
 #define CLEN 9   // 郵便番号の最大バイト長
 #define ALEN 200 // 住所欄の最大バイト長
@@ -78,7 +78,6 @@ void scan()
     }
     total_count = line;
   }
-  printf("%d\n", total_count);
   fclose(fp);
 }
 
@@ -187,12 +186,52 @@ int comp_code(const void *a, const void *b)
   return address_data[*(int *)a].code - address_data[*(int *)b].code;
 }
 
+
 // 文字列による住所検索．検索結果を出力．
+int hit_index_list[MAX_SIZE];
+int hit_list_count;
+
+void search(int index, int *hit_list_count){
+  int isHit = 0;
+
+  if (strstr(address_data[index].pref, query) != NULL)
+  {
+    isHit = 1;
+  }
+  else if (strstr(address_data[index].city, query) != NULL)
+  {
+    isHit = 1;
+  }
+  else if (strstr(address_data[index].town, query) != NULL)
+  {
+    isHit = 1;
+  }
+  else
+  {
+    char address_line[300];
+    snprintf(address_line,
+              sizeof(address_line),
+              "%s%s%s",
+              address_data[index].pref,
+              address_data[index].city,
+              address_data[index].town);
+    if (strstr(address_line, query) != NULL)
+    {
+      isHit = 1;
+    }
+  }
+
+  if (isHit)
+  {
+    hit_index_list[*hit_list_count] = index;
+    (*hit_list_count)++;
+  }
+}
+
 void address_search()
 {
+  hit_list_count = 0;
   if (query[0] == '\0' || query[0] == '\n') return;
-  static int hit_index_list[MAX_SIZE];
-  int hit_list_index = 0;
   // int pref_index = -1;
   // for (int i = 0; i < 47; i++)
   // {
@@ -203,39 +242,10 @@ void address_search()
   //   }
   // }
   for (int line=0; line < total_count; line++){
-    // if ((pref_index != -1) && (strstr(query, address_data[line].pref) != NULL)){
-    //   continue;
-    // }
-    int isHit = 0;
-    
-    if (strstr(address_data[line].pref, query) != NULL){
-      isHit = 1;
-    }else if (strstr(address_data[line].city, query) != NULL){
-      isHit = 1;
-    }else if (strstr(address_data[line].town, query) != NULL){
-      isHit = 1;
-    }else{
-      char address_line[300];
-      snprintf(address_line, 
-        sizeof(address_line), 
-        "%s%s%s", 
-        address_data[line].pref,
-        address_data[line].city, 
-        address_data[line].town);
-      if (strstr(address_line, query) != NULL)
-      {
-        isHit = 1;
-      }
-    }
-
-    if (isHit){
-
-      hit_index_list[hit_list_index] = line;
-      hit_list_index++;
-    }
+    search(line, &hit_list_count);
   }
-  qsort(hit_index_list, hit_list_index, sizeof(int), comp_code);
-  for (int i = 0; i < hit_list_index; i++)
+  qsort(hit_index_list, hit_list_count, sizeof(int), comp_code);
+  for (int i = 0; i < hit_list_count; i++)
   {
     printf("%07d:%s%s%s\n", address_data[hit_index_list[i]].code, address_data[hit_index_list[i]].pref, address_data[hit_index_list[i]].city, address_data[hit_index_list[i]].town);
   }
@@ -246,6 +256,19 @@ void address_search()
 // 絞り込み検索の実施
 void refinement()
 {
+  int re_hit_list_count = 0;
+  if (query[0] == '\0' || query[0] == '\n')
+    return;
+  for (int line = 0; line < hit_list_count; line++)
+  {
+    search(hit_index_list[line], &re_hit_list_count);
+  }
+  hit_list_count = re_hit_list_count;
+  qsort(hit_index_list, hit_list_count, sizeof(int), comp_code);
+  for (int i = 0; i < hit_list_count; i++)
+  {
+    printf("%07d:%s%s%s\n", address_data[hit_index_list[i]].code, address_data[hit_index_list[i]].pref, address_data[hit_index_list[i]].city, address_data[hit_index_list[i]].town);
+  }
   return;
 }
 
