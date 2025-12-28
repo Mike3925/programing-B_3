@@ -123,15 +123,15 @@ int binary_search(int search_code, int left, int right, ADDRESS *address_index[]
 
 void search_around(int index, int *left, int *right, ADDRESS *address_index[])
 {
+  *left = index;
   if (index > 0)
   {
-    *left = index;
     while (address_index[*left - 1]->code == address_index[index]->code)
       (*left)--;
   }
+  *right = index;
   if (index < total_count - 1)
   {
-    *right = index;
     while (address_index[*right + 1]->code == address_index[index]->code)
       (*right)++;
   }
@@ -191,10 +191,9 @@ int comp_code(const void *a, const void *b)
 void address_search()
 {
   if (query[0] == '\0' || query[0] == '\n') return;
-  printf("AJLFKD\n");
   static int hit_index_list[MAX_SIZE];
   int hit_list_index = 0;
-  int pref_index = -1;
+  // int pref_index = -1;
   // for (int i = 0; i < 47; i++)
   // {
   //   if (strstr(query, pref_names[i]) != NULL)
