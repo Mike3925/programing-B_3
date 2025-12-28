@@ -28,13 +28,13 @@ char query[ALEN]; // 検索クエリ（郵便番号or文字列）
 typedef struct address
 {
   int code;       // 郵便番号
-  char *pref;     // char pref[13]; //都道府県 MAX 4 x 3
+  char pref[20];     // char pref[13]; //都道府県 MAX 4 x 3
   char city[32];  // 市町村 MAX 10 x 3
   char town[116]; // 町域 MAX 38 x 3
 } ADDRESS;        // データ記録用構造体
 ADDRESS address_data[MAX_SIZE];
 // メモリ節約用都道府県名データ(jisコード順)
-char *pref_names[] = {
+char pref_names[][20] = {
     "北海道", "青森県", "岩手県", "宮城県", "秋田県",
     "山形県", "福島県", "茨城県", "栃木県", "群馬県",
     "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県",
@@ -45,16 +45,14 @@ char *pref_names[] = {
     "徳島県", "香川県", "愛媛県", "高知県", "福岡県",
     "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県",
     "鹿児島県", "沖縄県"};
-int total_count = 0;
+long total_count = 0;
 
 // 住所データファイルを読み取り，配列に保存
 void scan()
 {
   FILE *fp;
   long line = 0;
-  char jis[10];
-  char pref[ALEN + 1], code[CLEN + 1], city[ALEN + 1], town[ALEN + 1];
-  int jis_code;
+  char code[CLEN + 1], pref[ALEN + 1], city[ALEN + 1], town[ALEN + 1]; // tmp[ALEN+1];
 
   // datasizeの計算
   if ((fp = fopen(DATAFILE, "r")) == NULL)
@@ -62,22 +60,25 @@ void scan()
     fprintf(stderr, "error:cannot read %s\n", DATAFILE);
     exit(-1);
   }
-  while (fscanf(fp, "%[^,],%*[^,],\"%[^\"]\",%*[^,],%*[^,],%*[^,],\"%*[^\"]\",\"%[^\"]\",\"%[^\"]\",%*s", jis, code, city, town) != EOF)
+  while(fscanf(fp, "%*[^,],%*[^,],\"%[^\"]\",%*[^,],%*[^,],%*[^,],\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%*s",code,pref,city,town) != EOF )
   {
-    /*
-      上のfscanfにより，code,pref,city,townにそれぞれ郵便番号，都道府県，市町村，町域を表す
-      文字列が記憶される．この箇所にコードを加筆し，
-　　　これらの情報を用いて構造体の配列に住所データを記憶させる．
-     */
-    address_data[line].code = atoi(code);
-    // strcpy(address_data[line].pref, pref);
-    jis_code = atoi(jis)/1000;
-    address_data[line].pref = pref_names[jis_code - 1];
-    strcpy(address_data[line].city, city);
-    strcpy(address_data[line].town, town);
-    line++;
+    {
+      /*
+        上のfscanfにより，code,pref,city,townにそれぞれ郵便番号，都道府県，市町村，町域を表す
+        文字列が記憶される．この箇所にコードを加筆し，
+  　　　これらの情報を用いて構造体の配列に住所データを記憶させる．
+       */
+      address_data[line].code = atoi(code);
+      strcpy(address_data[line].pref, pref);
+      // jis_code = atoi(jis)/1000;
+      // address_data[line].pref = pref_names[jis_code - 1];
+      strcpy(address_data[line].city, city);
+      strcpy(address_data[line].town, town);
+      line++;
+    }
+    total_count = line;
   }
-  total_count = line;
+  printf("%d\n", total_count);
   fclose(fp);
 }
 
@@ -180,33 +181,6 @@ void code_search()
   return;
 }
 
-int line_search(int line)
-{
-  char address_line[1000];
-  if (address_data == NULL)
-  {
-    printf("%d\n", line);
-  }
-  snprintf(address_line, sizeof(address_line), "%s%s%s", address_data[line].pref, address_data[line].city, address_data[line].town);
-  // strcpy(address_line, address_data[line].pref);
-  // strcat(address_line, address_data[line].city);
-  // strcat(address_line, address_data[line].town);
-  if (strstr(address_line, query) != NULL)
-  {
-    return 1;
-  }
-  return 0;
-}
-
-int pref_search(int line)
-{
-  if (strstr(query, address_data[line].pref) != NULL)
-  {
-    return 1;
-  }
-  return 0;
-}
-
 int comp_code(const void *a, const void *b)
 {
   // printf("%d\n", *(int *)a);
@@ -217,23 +191,22 @@ int comp_code(const void *a, const void *b)
 void address_search()
 {
   if (query[0] == '\0' || query[0] == '\n') return;
+  printf("AJLFKD\n");
   static int hit_index_list[MAX_SIZE];
-  memset(hit_index_list, -1, sizeof(hit_index_list));
   int hit_list_index = 0;
   int pref_index = -1;
-  for (int i = 0; i < 47; i++)
-  {
-    if (strstr(query, pref_names[i]) != NULL)
-    {
-      pref_index = i;
-      break;
-    }
-  }
-
+  // for (int i = 0; i < 47; i++)
+  // {
+  //   if (strstr(query, pref_names[i]) != NULL)
+  //   {
+  //     pref_index = i;
+  //     break;
+  //   }
+  // }
   for (int line=0; line < total_count; line++){
-    if ((pref_index != -1) && address_data[line].pref != pref_names[pref_index]){
-      continue;
-    }
+    // if ((pref_index != -1) && (strstr(query, address_data[line].pref) != NULL)){
+    //   continue;
+    // }
     int isHit = 0;
     
     if (strstr(address_data[line].pref, query) != NULL){
@@ -257,6 +230,7 @@ void address_search()
     }
 
     if (isHit){
+
       hit_index_list[hit_list_index] = line;
       hit_list_index++;
     }
