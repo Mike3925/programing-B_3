@@ -28,13 +28,13 @@ char query[ALEN]; // 検索クエリ（郵便番号or文字列）
 typedef struct address
 {
   int code;       // 郵便番号
-  char pref[17];     // char pref[13]; //都道府県 MAX 4 x 3
+  char *pref;     // char pref[13]; //都道府県 MAX 4 x 3
   char city[32];  // 市町村 MAX 10 x 3
   char town[116]; // 町域 MAX 38 x 3
 } ADDRESS;        // データ記録用構造体
 ADDRESS address_data[MAX_SIZE];
 // メモリ節約用都道府県名データ(jisコード順)
-char pref_names[][17] = {
+char *pref_names[] = {
     "北海道", "青森県", "岩手県", "宮城県", "秋田県",
     "山形県", "福島県", "茨城県", "栃木県", "群馬県",
     "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県",
@@ -52,7 +52,8 @@ void scan()
 {
   FILE *fp;
   long line = 0;
-  char pref[ALEN + 1], code[CLEN + 1], city[ALEN + 1], town[ALEN + 1]; // Linux 環境では、なぜかjis[6]では動かない(Windows なら動いたのに...)
+  char jis[10];
+  char pref[ALEN + 1], code[CLEN + 1], city[ALEN + 1], town[ALEN + 1];
   int jis_code;
 
   // datasizeの計算
@@ -61,7 +62,7 @@ void scan()
     fprintf(stderr, "error:cannot read %s\n", DATAFILE);
     exit(-1);
   }
-  while (fscanf(fp, "%*[^,],%*[^,],\"%[^\"]\",%*[^,],%*[^,],%*[^,],\"%[^\"]\",\"%[^\"]\",\"%[^\"]\",%*s", code, pref, city, town) != EOF)
+  while (fscanf(fp, "%[^,],%*[^,],\"%[^\"]\",%*[^,],%*[^,],%*[^,],\"%*[^\"]\",\"%[^\"]\",\"%[^\"]\",%*s", jis, code, city, town) != EOF)
   {
     /*
       上のfscanfにより，code,pref,city,townにそれぞれ郵便番号，都道府県，市町村，町域を表す
@@ -69,8 +70,9 @@ void scan()
 　　　これらの情報を用いて構造体の配列に住所データを記憶させる．
      */
     address_data[line].code = atoi(code);
-    strcpy(address_data[line].pref, pref);
-    // strcpy(address_data[line].pref, pref_names[jis_code - 1]);
+    // strcpy(address_data[line].pref, pref);
+    jis_code = atoi(jis)/1000;
+    address_data[line].pref = pref_names[jis_code - 1];
     strcpy(address_data[line].city, city);
     strcpy(address_data[line].town, town);
     line++;
