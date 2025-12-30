@@ -1,3 +1,5 @@
 *.exe
 *.pdf
 ask_q.txt
+.tex_intermediates\
+*.dvi
