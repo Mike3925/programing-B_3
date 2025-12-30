@@ -12,6 +12,7 @@
 \usepackage{multirow} % 表で複数行にまたがる
 \usepackage{subcaption} % 図を並べて配置
 \usepackage{float} % 強制的に図の位置を指定する
+\usepackage{tikz}
 
 % 引用
 \usepackage{url,natbib}
@@ -27,12 +28,186 @@
 
 \begin{document}
 
-\title{}
-\author{大坪　祐清\\学籍番号: 09B25014}
+\title{プログラミングBレポート\\課題3}
 \date{\today}
+\author{担当教員: 武政 淳二\\ \\大坪　祐清\\学籍番号: 09B25014}
 \maketitle
 
+\section{課題内容}
+以下に挙げる 2 種類の検索を実現するプログラムを作成し，レポートにまとめよ．
 
+\begin{enumerate}[label=(検索\arabic*)]
+\item 郵便番号を入力すると，対応する住所を出力する．
+\item 住所名の一部を表す文字列を入力すると，その文字列を含む一連の住所およびそれらに対応する郵便番号のリストを出力する．
+ただし，リストは郵便番号で昇順にソートすること．
+\end{enumerate}
+
+ただし，プログラムは以下の 2 段階の処理を実行すること．
+\begin{enumerate}
+  \item 前処理  
+
+  検索を容易にするための前処理を担当する．郵便番号と住所を含むテキストファイルを入力として，構造体を利用してメモリに格納する．
+  \item 検索処理
+  
+（検索 1）もしくは（検索 2）を処理し,検索結果を画面に出力する.
+\end{enumerate}
+
+なお,入力のテキストファイルは,以下の,日本郵政株式会社のWeb ページ\footnote{\url{http://www.post.japanpost.jp/zipcode/dl/kogaki/zip/ken_all.zip}}からダウンロードしたcsvファイルとする.
+
+csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし,本課題で扱わない10列目以降は省略した.
+
+\begin{table}[htbp]
+  \centering
+  \caption{csvファイルの各列の意味(9列目まで)}
+  \label{fig:csv_meaning}
+  \begin{tabular}{|c|l|} \hline
+    1列目 & 全国地方公共団体コード(JIS X0401、X0402) \\ \hline
+    2列目 & 旧郵便番号(5桁) \\ \hline
+    3列目 & 郵便番号(7桁) \\ \hline
+    4列目 &  都道府県名(半角カタカナ)\\ \hline
+    5列目 &  市区町村名(半角カタカナ)\\ \hline
+    6列目 &  町域名(半角カタカナ)\\ \hline
+    7列目 &  都道府県名(漢字)\\ \hline
+    8列目 &  市区町村名(漢字)\\ \hline
+    9列目 &  町域名(漢字)\\ \hline
+  \end{tabular}
+\end{table}
+
+\section{アルゴリズムの説明}
+以下の手順で,処理を進める.
+\begin{enumerate}
+  \item csvファイルの1行目からファイルの終わりまで以下の処理を繰り返す.
+  \label{get_csv}
+  \begin{enumerate}
+    \item csvファイルを読み込み,3行目,7行目,8行目,9行目を変数に読み込む.
+    \item 読み込んだ変数を,構造体配列に読み込む. 
+  \end{enumerate}
+  \item (検索1)と(検索2)のどちらの検索をしたいのか,あるいはプログラムを終了したいのか,ユーザーからの入力を受け付ける.
+  \label{prg_s}
+  \item (検索1)あるいは(検索2)をユーザーが望んだ場合,検索したい郵便番号ないしは住所の入力を受けつけ,変数として受け取る.
+  \item 入力に応じて条件分岐を行う
+  \item (検索1)の場合の処理
+  \begin{enumerate}
+    \item クイックソートを用いて,郵便番号が昇順になるように構造体配列をソートする.
+    \item ユーザーからの郵便番号の入力と,ソートされた構造体配列をもとに,二分探索法で目的の住所を探す.
+    \item 条件にあったデータがあったら,郵便番号と住所を出力する.
+  \end{enumerate}
+  \item (検索2)の場合の処理
+  \label{prg_e}
+  \begin{enumerate}
+    \item n=1からn=「\ref{get_csv}で読み込んだ行数」まで,以下の処理を繰り返す
+    \begin{enumerate}
+      \item n行目の都道府県名,市区町村名,町域名のいずれかに入力の文字列が含まれていたら,配列にnを追加する.
+      \label{search_2_first_input}
+      \item \ref{search_2_first_input}の操作でいずれにも,入力が含まれていなかったかつ,n行目の住所に入力の文字列が含まれていたら,配列にnを追加する.
+    \end{enumerate}
+    \item 配列をクイックソートで,郵便番号が昇順になるようにソートする.
+    \item 配列に入っている情報をもとに,郵便番号と住所を出力する.
+    \item ユーザーに,絞り込み検索をしたいか尋ねる.
+    \item 絞り込み検索をする場合,絞り込みたい住所の入力を受けつけ,変数として受け取る.
+    \label{re_search_2s}
+    \item n=1からn=「\ref{search_2_first_input}の配列で追加した数」まで,以下の処理を繰り返す.  
+    \begin{enumerate}
+      \item \ref{search_2_first_input}の配列のn番目の要素の行の都道府県名,市区町村名,町域名のいずれかに入力の文字列が含まれていたら,\ref{search_2_first_input}の配列とは別の配列にnを追加する.
+      \label{re_search_first}
+      \item 前述のいずれにも,入力が含まれていなかったかつ,\ref{search_2_first_input}の配列のn番目の要素の行の住所に入力の文字列が含まれていたら,\ref{re_search_first}の配列にnを追加する.
+    \end{enumerate}
+    \item ユーザーに絞り込み検索をさらに,したいか尋ねる.
+    \label{re_search_2e}
+    \item 絞り込み検索をしたい場合,\ref{re_search_2s} $\sim$ \ref{re_search_2e}の操作を同様に繰り返す.
+  \end{enumerate}
+  \item いずれかの操作が終わったら,再び,\ref{prg_s} $\sim$ \ref{prg_e}の操作を繰り返す.
+\end{enumerate}
+
+\section{プログラムの説明}
+本プログラムは,C言語にて記述した.
+\subsection{入力形式}
+プログラムへの入力は,モードによって,異なる.
+
+プログラムに引数を与えずに,実行する場合,インタラクティブモードとなる.この場合,プログラムは実行中に,検索モードと検索クエリを標準入力から受け取り,検索を行う.
+
+プログラム実行時に,検索モードと検索クエリの列を記入した入力ファイル名を
+引数として指定し,実行する場合,ファイルモードとなる.この場合,プログラムは検索モードと検索クエリをファイルから読み取り,検索する.
+
+\subsection{出力形式}
+プログラムの出力は,検索の結果,得られた住所である.
+出力は,[郵便番号]:[住所]の形式で出力し,結果が複数ある場合は,郵便番号順が昇順になるように出力する.
+
+\subsection{データ構造}
+本プログラムのデータ構造を,表\ref{fig:data_struct}に示す.
+
+\begin{table}[htbp]
+   \centering
+   \caption{プログラムのデータ構造}
+   \label{fig:data_struct}
+   \begin{tabular}{|c|l|l|} \hline
+      データ型 & 型名 & 概要\\ \hline
+      構造型 & ADDRESS  & 
+      \begin{tabular}{l}
+        csvの1行分のデータを記憶する. \\
+        要素は表\ref{fig:ADDRESS_element}に示す
+      \end{tabular}
+      \\ \hline
+   \end{tabular} 
+\end{table}
+
+\begin{table}[htbp]
+   \centering
+   \caption{ADDRESS型の要素}
+   \label{fig:ADDRESS_element}
+   \begin{tabular}{|c|l|l|} \hline
+      要素の型 & 変数名 & 概要\\ \hline
+      int & code & 郵便番号を記憶する \\ \hline
+      char型配列 & pref[20] & 住所の都道府県名を記憶する. \\ \hline
+      char型配列 & city[32] & 住所の市区町村名を記憶する. \\ \hline
+      char型配列 & town[116] & 住所の町域名を記憶する. \\ \hline
+   \end{tabular}
+\end{table}
+
+\subsection{大域変数}
+本プログラムの大域変数を,表\ref{fig:global_variation}に示す.
+
+\begin{table}[htbp]
+   \centering
+   \caption{プログラムの大域変数}
+   \label{fig:global_variation}
+   \begin{tabular}{|c|l|l|} \hline
+      型名 & 変数名 & 概要 \\ \hline
+      ADDRESS & address\_data[200000] & 
+      \begin{tabular}{l}
+        CSVの全行のデータを\\
+        ADDRESS型配列として記憶する.
+      \end{tabular}
+      \\ \hline
+      int & mode & 検索モードを記憶する. \\ \hline
+      int & refine\_flag & 絞り込み検索をするかどうか記憶する. \\ \hline
+      char & query[200] & 検索クエリ(郵便番号または住所)を記憶する \\ \hline
+      long & total\_count & 何行データを読み込んだかを記憶する. \\ \hline
+      int & hit\_index\_list[200000] & 住所検索で何行目がヒットしたかを記憶する. \\ \hline
+      int & hit\_list\_count & 住所検索でヒットした回数を記憶する. \\ \hline
+   \end{tabular}
+\end{table}
+
+\subsection{関数の設計}
+%次回はここから
+関数の呼び出し関係を図\ref{fig:func-relation}に示す.
+
+main関数から処理が始まり,まずinit関数で構造体の初期化が行われる.
+次に,関数に引数にあるかどうかで処理が分かれる.
+引数がある場合はrun\_from\_file関数が実施される.
+run\_from\_file関数での呼び出し関係を図\ref{fig:func-run-from-file}に示す.
+引数がない場合,respond関数が呼び出される.
+
+run\_from\_file関数では,ファイルの検索モードに応じて,code\_search関数,address\_search関数が呼ばれる.
+
+\begin{figure}[htbp]
+  \begin{tikzpicture}
+    \draw(0,0)--(4,3);
+  \end{tikzpicture}
+  \caption{関数の呼び出し関係(main関数始まり)}
+  \label{fig:func-relation}
+\end{figure}
 
 
 \end{document}
+
