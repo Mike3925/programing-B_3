@@ -13,6 +13,7 @@
 \usepackage{subcaption} % 図を並べて配置
 \usepackage{float} % 強制的に図の位置を指定する
 \usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
 
 % 引用
 \usepackage{url,natbib}
@@ -190,23 +191,177 @@ csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし
 
 \subsection{関数の設計}
 %次回はここから
-関数の呼び出し関係を図\ref{fig:func-relation}に示す.
+関数の呼び出し関係を図\ref{fig:func-relation-main}に示す.
 
 main関数から処理が始まり,まずinit関数で構造体の初期化が行われる.
 次に,関数に引数にあるかどうかで処理が分かれる.
 引数がある場合はrun\_from\_file関数が実施される.
 run\_from\_file関数での呼び出し関係を図\ref{fig:func-run-from-file}に示す.
-引数がない場合,respond関数が呼び出される.
+引数がない場合,respond関数が呼び出される.respond関数での呼び出し関係を図\ref{fig:func-respond}に示す.
 
 run\_from\_file関数では,ファイルの検索モードに応じて,code\_search関数,address\_search関数が呼ばれる.
 
-\begin{figure}[htbp]
-  \begin{tikzpicture}
-    \draw(0,0)--(4,3);
+code\_search関数では,
+
+% =============================================
+% 図1: メイン処理と全体の流れ
+% =============================================
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+      % ノード（箱）のデザイン定義
+      func/.style={
+        rectangle,
+        draw=black,
+        rounded corners,
+        minimum width=2.5cm,
+        minimum height=1cm,
+        align=center,
+        fill=white
+      },
+      % 矢印のデザイン定義
+      arrow/.style={
+        ->,
+        >={Stealth}, % カッコいい矢印の頭
+        thick
+      },
+      % ノード間の距離設定
+      node distance=1.0cm and 1.0cm % 縦 と 横 の間隔
+    ]
+
+    % --- ノードの配置 ---
+    % 基準となるメイン関数
+    \node[func] (main) {メイン処理\\(main)};
+
+    % 初期化処理 (mainから呼ばれる)
+    \node[func, below=of main] (init) {初期化\\(init)};
+    
+    % データの読み込み (initから呼ばれる)
+    \node[func, right=of init] (scan) {データ読み込み\\(scan)};
+
+    % 実行モードの分岐 (mainから呼ばれる)
+    \node[func, below left=of init, xshift=-1cm, yshift=-0.5cm] (run-file) {ファイル実行\\(run\_from\_file)};
+    \node[func, below right=of init, xshift=1cm, yshift=-0.5cm] (respond) {対話モード実行\\(respond)};
+
+    % --- 矢印をつなぐ ---
+    \draw[arrow] (main) -- (init);
+    \draw[arrow] (init) -- (scan);
+    
+    % init完了後に分岐するため、mainから矢印を引くのが論理的に正しい
+    % (見やすくするため、initを経由せずmainから直接、あるいはinitの下へ分岐させる線を引きます)
+    \draw[arrow] (main) to[out=210,in=90] (run-file);
+    \draw[arrow] (main) to[out=330,in=90] (respond);
+
   \end{tikzpicture}
-  \caption{関数の呼び出し関係(main関数始まり)}
-  \label{fig:func-relation}
+  \caption{全体の関数呼び出し関係図}
+  \label{fig:func-relation-main}
 \end{figure}
+
+% =============================================
+% 図2: run_from_file (ファイルモード) の詳細
+% =============================================
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+      func/.style={
+        rectangle,
+        draw=black,
+        rounded corners,
+        minimum width=2.2cm,
+        minimum height=1cm,
+        align=center,
+        fill=white,
+        font=\small
+      },
+      arrow/.style={
+        ->,
+        >={Stealth},
+        thick
+      },
+      node distance=1.2cm and 0.5cm
+    ]
+
+    % 親ノード
+    \node[func] (from-file) {ファイルモード処理\\(run\_from\_file)};
+    
+    % 検索系ノード (3つの分岐)
+    \node[func, below=of from-file] (ad-search) {住所から検索\\(address\_search)};
+    \node[func, left=of ad-search] (code-search) {郵便番号から検索\\(code\_search)};
+    \node[func, right=of ad-search] (refine) {絞り込み検索\\(refinement)};
+
+    % 詳細処理ノード
+    \node[func, below=of code-search, yshift=0.2cm] (binary) {二分探索\\(binary\_search)};
+    \node[func, below=of ad-search, yshift=0.2cm] (search) {線形探索\\(search)};
+    
+    % --- 矢印 ---
+    % run_from_file からの分岐
+    \draw[arrow] (from-file) -- (code-search);
+    \draw[arrow] (from-file) -- (ad-search);
+    \draw[arrow] (from-file) -- (refine);
+
+    % 内部処理への呼び出し
+    \draw[arrow] (code-search) -- (binary);
+    \draw[arrow] (ad-search) -- (search);
+    \draw[arrow] (refine) |- (search); % refinementもsearchを使う
+
+  \end{tikzpicture}
+  \caption{ファイル実行モードにおける呼び出し}
+  \label{fig:func-run-from-file}
+\end{figure}
+
+% =============================================
+% 図3: respond (対話モード) の詳細
+% =============================================
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+      func/.style={
+        rectangle,
+        draw=black,
+        rounded corners,
+        minimum width=2.2cm,
+        minimum height=1cm,
+        align=center,
+        fill=white,
+        font=\small
+      },
+      arrow/.style={
+        ->,
+        >={Stealth},
+        thick
+      },
+      node distance=1.5cm and 0.5cm
+    ]
+
+    % 親ノード
+    \node[func] (respond) {対話モード処理\\(respond)};
+
+    % ユーザー入力関係
+    \node[func, below left=of respond] (input) {メニュー/入力\\(input)};
+    \node[func, below right=of respond] (re-input) {絞り込み入力\\(re\_input)};
+    
+    % 検索処理
+    \node[func, below=of input] (code-search) {郵便番号検索\\(code\_search)};
+    \node[func, right=of code-search] (ad-search) {住所検索\\(address\_search)};
+    \node[func, below=of re-input] (refine) {絞り込み\\(refinement)};
+
+    % --- 矢印 ---
+    % respond は input を呼び出す
+    \draw[arrow] (respond) -- (input);
+    
+    % respond は入力結果に応じて検索を呼び出す (inputが呼ぶわけではない)
+    \draw[arrow] (respond) to[out=250,in=90] (code-search);
+    \draw[arrow] (respond) -- (ad-search);
+
+    % 絞り込みループの流れ
+    \draw[arrow] (respond) -- (re-input);
+    \draw[arrow] (respond) to[out=340,in=90] (refine);
+
+  \end{tikzpicture}
+  \caption{対話モード（respond）における呼び出し}
+  \label{fig:func-respond}
+\end{figure}
+
 
 
 \end{document}
