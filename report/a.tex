@@ -14,6 +14,7 @@
 \usepackage{float} % 強制的に図の位置を指定する
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta}
+\usepackage{longtable}
 
 % 引用
 \usepackage{url,natbib}
@@ -35,46 +36,52 @@
 \maketitle
 
 \section{課題内容}
-以下に挙げる 2 種類の検索を実現するプログラムを作成し，レポートにまとめよ．
+基本課題および発展課題に取り組んだ.
 
-\begin{enumerate}[label=(検索\arabic*)]
-\item 郵便番号を入力すると，対応する住所を出力する．
-\item 住所名の一部を表す文字列を入力すると，その文字列を含む一連の住所およびそれらに対応する郵便番号のリストを出力する．
-ただし，リストは郵便番号で昇順にソートすること．
-\end{enumerate}
-
-ただし，プログラムは以下の 2 段階の処理を実行すること．
-\begin{enumerate}
-  \item 前処理  
-
-  検索を容易にするための前処理を担当する．郵便番号と住所を含むテキストファイルを入力として，構造体を利用してメモリに格納する．
-  \item 検索処理
+% \begin{quote}
   
-（検索 1）もしくは（検索 2）を処理し,検索結果を画面に出力する.
-\end{enumerate}
-
-なお,入力のテキストファイルは,以下の,日本郵政株式会社のWeb ページ\footnote{\url{http://www.post.japanpost.jp/zipcode/dl/kogaki/zip/ken_all.zip}}からダウンロードしたcsvファイルとする.
-
-csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし,本課題で扱わない10列目以降は省略した.
-
-\begin{table}[htbp]
-  \centering
-  \caption{csvファイルの各列の意味(9列目まで)}
-  \label{fig:csv_meaning}
-  \begin{tabular}{|c|l|} \hline
-    1列目 & 全国地方公共団体コード(JIS X0401、X0402) \\ \hline
-    2列目 & 旧郵便番号(5桁) \\ \hline
-    3列目 & 郵便番号(7桁) \\ \hline
-    4列目 &  都道府県名(半角カタカナ)\\ \hline
-    5列目 &  市区町村名(半角カタカナ)\\ \hline
-    6列目 &  町域名(半角カタカナ)\\ \hline
-    7列目 &  都道府県名(漢字)\\ \hline
-    8列目 &  市区町村名(漢字)\\ \hline
-    9列目 &  町域名(漢字)\\ \hline
-  \end{tabular}
-\end{table}
+%   以下に挙げる 2 種類の検索を実現するプログラムを作成し，レポートにまとめよ．
+  
+%   \begin{enumerate}[label=(検索\arabic*)]
+%   \item 郵便番号を入力すると，対応する住所を出力する．
+%   \item 住所名の一部を表す文字列を入力すると，その文字列を含む一連の住所およびそれらに対応する郵便番号のリストを出力する．
+%   ただし，リストは郵便番号で昇順にソートすること．
+%   \end{enumerate}
+  
+%   ただし，プログラムは以下の 2 段階の処理を実行すること．
+%   \begin{enumerate}
+%     \item 前処理  
+  
+%     検索を容易にするための前処理を担当する．郵便番号と住所を含むテキストファイルを入力として，構造体を利用してメモリに格納する．
+%     \item 検索処理
+    
+%   （検索 1）もしくは（検索 2）を処理し,検索結果を画面に出力する.
+%   \end{enumerate}
+  
+%   なお,入力のテキストファイルは,以下の,日本郵政株式会社のWeb ページ\footnote{\url{http://www.post.japanpost.jp/zipcode/dl/kogaki/zip/ken_all.zip}}からダウンロードしたcsvファイルとする.
+  
+%   csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし,本課題で扱わない10列目以降は省略した.
+  
+%   \begin{table}[htbp]
+%     \centering
+%     \caption{csvファイルの各列の意味(9列目まで)}
+%     \label{fig:csv_meaning}
+%     \begin{tabular}{|c|l|} \hline
+%       1列目 & 全国地方公共団体コード(JIS X0401、X0402) \\ \hline
+%       2列目 & 旧郵便番号(5桁) \\ \hline
+%       3列目 & 郵便番号(7桁) \\ \hline
+%       4列目 &  都道府県名(半角カタカナ)\\ \hline
+%       5列目 &  市区町村名(半角カタカナ)\\ \hline
+%       6列目 &  町域名(半角カタカナ)\\ \hline
+%       7列目 &  都道府県名(漢字)\\ \hline
+%       8列目 &  市区町村名(漢字)\\ \hline
+%       9列目 &  町域名(漢字)\\ \hline
+%     \end{tabular}
+%   \end{table}
+% \end{quote}
 
 \section{アルゴリズムの説明}
+\label{sec:explain-algo}
 以下の手順で,処理を進める.
 \begin{enumerate}
   \item csvファイルの1行目からファイルの終わりまで以下の処理を繰り返す.
@@ -83,29 +90,29 @@ csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし
     \item csvファイルを読み込み,3行目,7行目,8行目,9行目を変数に読み込む.
     \item 読み込んだ変数を,構造体配列に読み込む. 
   \end{enumerate}
-  \item (検索1)と(検索2)のどちらの検索をしたいのか,あるいはプログラムを終了したいのか,ユーザーからの入力を受け付ける.
+  \item (検索1)と(検索2)のどちらの検索をしたいのか,あるいはプログラムを終了したいのか,ユーザー/入力ファイルからの入力を受け付ける. \label{req-input}
   \label{prg_s}
-  \item (検索1)あるいは(検索2)をユーザーが望んだ場合,検索したい郵便番号ないしは住所の入力を受けつけ,変数として受け取る.
-  \item 入力に応じて条件分岐を行う
+  \item (検索1)あるいは(検索2)をユーザー/入力ファイルが望んだ場合,検索したい郵便番号ないしは住所の入力を受けつけ,変数として受け取る. \label{get_input}
+  \item 入力に応じて条件分岐を行う \label{conditional_branch}
   \item (検索1)の場合の処理
   \begin{enumerate}
-    \item クイックソートを用いて,郵便番号が昇順になるように構造体配列をソートする.
-    \item ユーザーからの郵便番号の入力と,ソートされた構造体配列をもとに,二分探索法で目的の住所を探す.
-    \item 条件にあったデータがあったら,郵便番号と住所を出力する.
+    \item クイックソートを用いて,郵便番号が昇順になるように構造体配列をソートする. \label{1-sort}
+    \item ユーザーからの郵便番号の入力と,ソートされた構造体配列をもとに,二分探索法で目的の住所を探す. \label{1-binary}
+    \item 条件にあったデータがあったら,郵便番号と住所を出力する. \label{1-output}
   \end{enumerate}
   \item (検索2)の場合の処理
   \label{prg_e}
   \begin{enumerate}
     \item n=1からn=「\ref{get_csv}で読み込んだ行数」まで,以下の処理を繰り返す
     \begin{enumerate}
-      \item n行目の都道府県名,市区町村名,町域名のいずれかに入力の文字列が含まれていたら,配列にnを追加する.
+      \item n行目の都道府県名,市区町村名,町域名のいずれかに入力の文字列が含まれていたら,配列にnを追加する. \label{2-pref-city-town}
       \label{search_2_first_input}
-      \item \ref{search_2_first_input}の操作でいずれにも,入力が含まれていなかったかつ,n行目の住所に入力の文字列が含まれていたら,配列にnを追加する.
+      \item \ref{search_2_first_input}の操作でいずれにも,入力が含まれていなかったかつ,n行目の住所に入力の文字列が含まれていたら,配列にnを追加する. \label{2-adr-all}
     \end{enumerate}
-    \item 配列をクイックソートで,郵便番号が昇順になるようにソートする.
-    \item 配列に入っている情報をもとに,郵便番号と住所を出力する.
-    \item ユーザーに,絞り込み検索をしたいか尋ねる.
-    \item 絞り込み検索をする場合,絞り込みたい住所の入力を受けつけ,変数として受け取る.
+    \item 配列をクイックソートで,郵便番号が昇順になるようにソートする. \label{2-sort}
+    \item 配列に入っている情報をもとに,郵便番号と住所を出力する. \label{2-output}
+    \item ユーザー/入力ファイルに,絞り込み検索をしたいか尋ねる. \label{2-ask-to-refine}
+    \item 絞り込み検索をする場合,絞り込みたい住所の入力を受けつけ,変数として受け取る. 
     \label{re_search_2s}
     \item n=1からn=「\ref{search_2_first_input}の配列で追加した数」まで,以下の処理を繰り返す.  
     \begin{enumerate}
@@ -113,7 +120,7 @@ csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし
       \label{re_search_first}
       \item 前述のいずれにも,入力が含まれていなかったかつ,\ref{search_2_first_input}の配列のn番目の要素の行の住所に入力の文字列が含まれていたら,\ref{re_search_first}の配列にnを追加する.
     \end{enumerate}
-    \item ユーザーに絞り込み検索をさらに,したいか尋ねる.
+    \item ユーザー/入力ファイルに絞り込み検索をさらに,したいか尋ねる.
     \label{re_search_2e}
     \item 絞り込み検索をしたい場合,\ref{re_search_2s} $\sim$ \ref{re_search_2e}の操作を同様に繰り返す.
   \end{enumerate}
@@ -145,7 +152,7 @@ csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし
       データ型 & 型名 & 概要\\ \hline
       構造型 & ADDRESS  & 
       \begin{tabular}{l}
-        csvの1行分のデータを記憶する. \\
+        CSVの1行分のデータを記憶する. \\
         要素は表\ref{fig:ADDRESS_element}に示す
       \end{tabular}
       \\ \hline
@@ -189,8 +196,95 @@ csvファイルの各列の意味は,表\ref{fig:csv_meaning}で示す.ただし
    \end{tabular}
 \end{table}
 
+構造型配列address\_data[200000]に郵便番号と住所のデータが入る.
+データの取り出しは,address\_data[16].codeのように取り出す.
+これ以降,address\_dataに指定する,配列の添字をindexと呼ぶ.
+
 \subsection{関数の設計}
-%次回はここから
+設計した各関数を表\ref{fig:func-list}に示す.
+\begin{longtable}{|c|l|l|l|}
+   \caption{設計した関数}
+   \label{fig:func-list} \\ \hline
+    関数名 & 引数 & 返り値 & 処理内容\\ \hline
+    main & int , int ** & int & \begin{tabular}{l}
+      コマンドラインから,\\引数を受け取り,各関数に渡す
+    \end{tabular} \\ \hline
+    init & 引数なし & 返り値なし & \begin{tabular}{l}
+      構造体配列address\_data[2000]\\
+      の初期化を行う
+    \end{tabular} \\ \hline
+    scan & 引数なし & 返り値なし & \begin{tabular}{l}
+      住所データをCSVから読み込み,\\構造体配列に記憶させる.
+    \end{tabular} \\ \hline
+    run\_from\_file & const char * & 返り値なし & \begin{tabular}{l}
+      コマンド、検索対象の郵便番号、\\または住所の列をテキストファイル\\から受け取り、コード検索を行う。
+    \end{tabular} \\ \hline
+    respond & 引数なし & 返り値なし & クエリを読み込み,応答する \\ \hline
+    input & 引数なし & 返り値なし & 検索モードとクエリの入力を読み込む \\ \hline
+    code\_search & 引数なし & 返り値なし & \begin{tabular}{l}
+      郵便番号によって住所を検索し,\\
+      検索結果を出力する
+    \end{tabular} \\ \hline
+    comp\_adr & \begin{tabular}{l}
+      const void * ,\\
+      const void *
+    \end{tabular} & int & \begin{tabular}{l}
+      q\_sort関数の比較関数. \\
+      第1引数のindexの郵便番号が,\\
+      第2引数のindexの郵便番号より\\
+      大きかったら,自然数を返す.
+    \end{tabular}
+      \\ \hline
+    binary\_search & \begin{tabular}{l}
+      int , int ,\\ 
+      int , \\
+      ADDRESS * 
+    \end{tabular}
+    & 返り値なし &\begin{tabular}{l}
+      第1引数に指定された値を,\\ 
+      第4引数に指定された\\
+      ADDRESSのindex=left から\\
+      index=rightまで二分探索法で探す\\
+    \end{tabular} \\ \hline
+    search\_around & \begin{tabular}{l}
+      int,int *,\\
+      int *,\\
+      ADDRESS *
+    \end{tabular} & 返り値なし & \begin{tabular}{l}
+      第1引数に指定された,\\
+      indexの周囲を探索し,\\
+      indexの郵便番号と同じ値を探す.\\
+      返り値として, \\
+      引数に指定されたアドレスに\\
+      同じ郵便番号の始点と終点を返す
+    \end{tabular} \\ \hline
+    address\_search & 引数なし & 返り値なし & \begin{tabular}{l}
+      クエリの住所を探索し,\\検索結果を出力する.
+    \end{tabular} \\ \hline
+    search & int, int * & 返り値なし & \begin{tabular}{l}
+      (第1引数)行目のデータと\\
+      クエリを比較し,\\
+      条件に合致したら,\\第2引数の値に\\
+      1を足して返す.
+    \end{tabular} \\ \hline 
+    comp\_code & \begin{tabular}{l}
+      const void *, \\
+      const void * 
+    \end{tabular}
+    & int & \begin{tabular}{l}
+      q\_sort関数の比較関数.\\
+      第1引数のindexの郵便番号が,\\
+      第2引数のindexの郵便番号より\\
+      大きかったら,自然数を返す.
+    \end{tabular} \\ \hline
+    re\_input & 引数なし & 返り値なし & \begin{tabular}{l}
+      絞り込み検索をするか,ユーザーにたずねる.\\
+      絞り込む場合,絞り込み検索の内容を\\queryに入れる.
+    \end{tabular}\\ \hline
+    refinement & 引数なし & 返り値なし & \begin{tabular}{l}
+      絞り込み検索を実施し,\\検索結果を出力する
+    \end{tabular} \\ \hline
+\end{longtable}
 関数の呼び出し関係を図\ref{fig:func-relation-main}に示す.
 
 main関数から処理が始まり,まずinit関数で構造体の初期化が行われる.
@@ -199,14 +293,10 @@ main関数から処理が始まり,まずinit関数で構造体の初期化が�
 run\_from\_file関数での呼び出し関係を図\ref{fig:func-run-from-file}に示す.
 引数がない場合,respond関数が呼び出される.respond関数での呼び出し関係を図\ref{fig:func-respond}に示す.
 
-run\_from\_file関数では,ファイルの検索モードに応じて,code\_search関数,address\_search関数が呼ばれる.
-
-code\_search関数では,
-
 % =============================================
 % 図1: メイン処理と全体の流れ
 % =============================================
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}[
       % ノード（箱）のデザイン定義
@@ -237,7 +327,7 @@ code\_search関数では,
     \node[func, below=of main] (init) {初期化\\(init)};
     
     % データの読み込み (initから呼ばれる)
-    \node[func, right=of init] (scan) {データ読み込み\\(scan)};
+    \node[func, below=of init] (scan) {データ読み込み\\(scan)};
 
     % 実行モードの分岐 (mainから呼ばれる)
     \node[func, below left=of init, xshift=-1cm, yshift=-0.5cm] (run-file) {ファイル実行\\(run\_from\_file)};
@@ -260,7 +350,7 @@ code\_search関数では,
 % =============================================
 % 図2: run_from_file (ファイルモード) の詳細
 % =============================================
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}[
       func/.style={
@@ -292,6 +382,7 @@ code\_search関数では,
     % 詳細処理ノード
     \node[func, below=of code-search, yshift=0.2cm] (binary) {二分探索\\(binary\_search)};
     \node[func, below=of ad-search, yshift=0.2cm] (search) {線形探索\\(search)};
+    \node[func, below left=of code-search, yshift=0.2cm] (comp-adr) {qsort関数の比較関数\\(comp\_adr)};
     
     % --- 矢印 ---
     % run_from_file からの分岐
@@ -303,6 +394,7 @@ code\_search関数では,
     \draw[arrow] (code-search) -- (binary);
     \draw[arrow] (ad-search) -- (search);
     \draw[arrow] (refine) |- (search); % refinementもsearchを使う
+    \draw[arrow] (code-search) -- (comp-adr);
 
   \end{tikzpicture}
   \caption{ファイル実行モードにおける呼び出し}
@@ -312,7 +404,7 @@ code\_search関数では,
 % =============================================
 % 図3: respond (対話モード) の詳細
 % =============================================
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{tikzpicture}[
       func/.style={
@@ -345,24 +437,89 @@ code\_search関数では,
     \node[func, right=of code-search] (ad-search) {住所検索\\(address\_search)};
     \node[func, below=of re-input] (refine) {絞り込み\\(refinement)};
 
+    \node[func, below=of code-search, yshift=0.2cm] (binary) {二分探索\\(binary\_search)};
+    \node[func, below=of ad-search, yshift=0.2cm] (search) {線形探索\\(search)};
+
+    \node[func, below left=of code-search, yshift=0.2cm] (comp-adr) {qsort関数の比較関数\\(comp\_adr)};
+
     % --- 矢印 ---
     % respond は input を呼び出す
     \draw[arrow] (respond) -- (input);
     
     % respond は入力結果に応じて検索を呼び出す (inputが呼ぶわけではない)
-    \draw[arrow] (respond) to[out=250,in=90] (code-search);
+    \draw[arrow] (respond) to[out=255,in=60] (code-search);
     \draw[arrow] (respond) -- (ad-search);
 
     % 絞り込みループの流れ
     \draw[arrow] (respond) -- (re-input);
-    \draw[arrow] (respond) to[out=340,in=90] (refine);
+    \draw[arrow] (respond) to[out=285,in=120] (refine);
+
+    % 内部処理への呼び出し
+    \draw[arrow] (code-search) -- (binary);
+    \draw[arrow] (ad-search) -- (search);
+    \draw[arrow] (refine) |- (search); % refinementもsearchを使う
+    \draw[arrow] (code-search) -- (comp-adr);
 
   \end{tikzpicture}
   \caption{対話モード（respond）における呼び出し}
   \label{fig:func-respond}
 \end{figure}
 
+\subsection{処理の流れ・意図}
+プログラムの処理は,以下の流れで実行される.
+()内には,「\ref{sec:explain-algo} アルゴリズムの説明」で対応する,順序番号を示す.
+\\
 
+まず,init関数が実行される.
+そして,init関数からscan関数が呼び出される.
+scan関数では,マクロ命令で定義されたDATEFILEからCSVファイルを読み込み,構造体配列address\_dataに読み込む.(\ref{get_csv})
+
+その後,main関数に処理が戻り,プログラム実行時に渡された引数の数で処理が分岐する.
+引数が1つ以上渡されていた場合には,run\_from\_file関数が呼び出され,そうでない場合には,respond関数が呼び出される.
+
+run\_from\_file関数では,ファイルの検索モードに応じて,code\_search関数,address\_search関数が呼ばれる.
+(\ref{req-input}, \ref{get_input},\ref{conditional_branch})
+
+respond関数では,まず,input関数が呼び出される.
+input関数では,ユーザーの望みの検索モードと検索するクエリが,変数mode,queryのそれぞれに入る.
+その後、modeに応じて,code\_search関数,address\_search関数が呼ばれる.
+(\ref{req-input}, \ref{get_input},\ref{conditional_branch})
+
+code\_search関数では,まず,address\_dataの要素のポインタをstaticポインタ配列のaddress\_searchに読み込む.
+新しく,ポインタ配列を作ることで,もとのaddress\_dataの情報を残しておくと同時に,この後行うクイックソートの処理を軽くしている.
+クイックソートを実行した後,static変数isSortedに1を入れている.
+これにより,1回目のcode\_search関数の実行が終わった後に,再度,code\_search関数が呼ばれた際に,1回目のソートされたstaticポインタ配列を再利用できるようにしている.
+(\ref{1-sort})
+
+その後,二分探索をbinary\_search関数で実行し,クエリに一致するデータがあったら,search\_around関数を実行する.
+search\_around関数は,1つの郵便番号に対して複数の住所が割り当てられている場合のための関数である.
+search\_around関数の実行後,結果を出力する.
+(\ref{1-binary}, \ref{1-output})
+
+address\_search関数では,読み込んだファイルの行数だけ,search関数を実行する.
+search関数では,先に都道府県,市区町村名,町域名にクエリが含まれているかどうかを確認してる.
+これは,クエリが「大阪」のように短い場合,その後のsnprintf関数による,文字列結合という重い処理を回避するためである.
+(\ref{2-pref-city-town}, \ref{2-adr-all})
+
+その後,クエリに一致したデータをクイックソートで郵便番号が昇順になるように並び替え,出力する.
+(\ref{2-sort},\ref{2-output})
+
+% 作業、次回はrefine(絞り込み作業)の処理の流れと意図を書く
+% 「ユーザー/入力ファイルに, 絞り込み検索をしたいか尋ねる」に対し,ラベルを
+% 2-ask-to-refine としている.
+% 「絞り込み検索をする場合, 絞り込みたい住所の入力を受けつけ, 変数として受け取る.」に対し、ラベルを
+% re_search_2s としている
+
+\section{工夫した点}
+
+\section{考察}
+
+\section{感想}
+
+\section{作業工程}
+
+\appendix
+\section{プログラムリスト}
 
 \end{document}
 
