@@ -1,4 +1,4 @@
-This is e-upTeX, Version 3.141592653-p4.1.2-u2.00-250202-2.6 (utf8.uptex) (TeX Live 2025) (preloaded format=uplatex 2025.6.5)  1 JAN 2026 15:27
+This is e-upTeX, Version 3.141592653-p4.1.2-u2.00-250202-2.6 (utf8.uptex) (TeX Live 2025) (preloaded format=uplatex 2025.6.5)  3 JAN 2026 21:14
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -607,44 +607,46 @@ File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 
 [1]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 125.
+(Font)              <10> on input line 126.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 125.
+(Font)              <7> on input line 126.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 125.
+(Font)              <5> on input line 126.
 LaTeX Font Info:    Font shape `JY2/mc/m/n' will be
-(Font)              scaled to size 6.47278pt on input line 125.
+(Font)              scaled to size 6.47278pt on input line 126.
 LaTeX Font Info:    Font shape `JY2/mc/m/n' will be
-(Font)              scaled to size 4.62341pt on input line 125.
+(Font)              scaled to size 4.62341pt on input line 126.
 LaTeX Font Info:    Font shape `JY2/gt/m/n' will be
-(Font)              scaled to size 9.24683pt on input line 125.
+(Font)              scaled to size 9.24683pt on input line 126.
 LaTeX Font Info:    Font shape `JY2/gt/m/n' will be
-(Font)              scaled to size 6.47278pt on input line 125.
+(Font)              scaled to size 6.47278pt on input line 126.
 LaTeX Font Info:    Font shape `JY2/gt/m/n' will be
-(Font)              scaled to size 4.62341pt on input line 125.
+(Font)              scaled to size 4.62341pt on input line 126.
 LaTeX Font Info:    Font shape `JT2/gt/m/n' will be
-(Font)              scaled to size 11.09619pt on input line 132.
+(Font)              scaled to size 11.09619pt on input line 133.
 
-Overfull \hbox (20.95279pt too wide) in alignment at lines 205--287
+
+[2]
+Overfull \hbox (20.95279pt too wide) in alignment at lines 206--288
  [] [] [] [] 
  []
 
-
-
-[2] [3]
+[3]
 
 [4]
 LaTeX Font Info:    Font shape `JT2/mc/m/n' will be
-(Font)              scaled to size 8.32214pt on input line 375.
+(Font)              scaled to size 8.32214pt on input line 376.
 LaTeX Font Info:    Font shape `JY2/mc/m/n' will be
-(Font)              scaled to size 8.32214pt on input line 375.
+(Font)              scaled to size 8.32214pt on input line 376.
 
 
 [5]
 
 [6]
 
-[7] (.tex_intermediates/a.aux)
+[7]
+
+[8] (.tex_intermediates/a.aux)
  ***********
 pLaTeX2e <2023-02-14u04>+1, based on
 LaTeX2e <2025-06-01>
@@ -652,12 +654,12 @@ L3 programming layer <2025-05-26>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 18204 strings out of 470001
- 348872 string characters out of 5486830
- 748495 words of memory out of 5000000
- 46315 multiletter control sequences out of 15000+600000
+ 18208 strings out of 470001
+ 348922 string characters out of 5486830
+ 747668 words of memory out of 5000000
+ 46319 multiletter control sequences out of 15000+600000
  700698 words of font info for 140 fonts, out of 8000000 for 9000
  41 hyphenation exceptions out of 8191
  85i,14n,91p,725b,889s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on .tex_intermediates/a.dvi (8 pages, 52876 bytes).
+Output written on .tex_intermediates/a.dvi (9 pages, 57988 bytes).
