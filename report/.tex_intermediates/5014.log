@@ -1,10 +1,10 @@
-This is e-upTeX, Version 3.141592653-p4.1.2-u2.00-250202-2.6 (utf8.uptex) (TeX Live 2025) (preloaded format=uplatex 2025.6.5)  3 JAN 2026 21:14
+This is e-upTeX, Version 3.141592653-p4.1.2-u2.00-250202-2.6 (utf8.uptex) (TeX Live 2025) (preloaded format=uplatex 2025.6.5)  4 JAN 2026 17:00
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**a.tex
-(./a.tex
+**5014.tex
+(./5014.tex
 pLaTeX2e <2023-02-14u04>+1, based on
 LaTeX2e <2025-06-01>
 L3 programming layer <2025-05-26>
@@ -511,8 +511,8 @@ File: l3backend-dvips.def 2025-04-14 L3 backend support: dvips
 \g__pdfannot_backend_int=\count340
 \g__pdfannot_backend_link_int=\count341
 \g__pdfannot_backend_link_sf_int=\count342
-) (.tex_intermediates/a.aux)
-\openout1 = `a.aux'.
+) (.tex_intermediates/5014.aux)
+\openout1 = `5014.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 31.
 LaTeX Font Info:    ... okay on input line 31.
@@ -645,21 +645,44 @@ LaTeX Font Info:    Font shape `JY2/mc/m/n' will be
 [6]
 
 [7]
+LaTeX Font Info:    Font shape `JT2/gt/m/n' will be
+(Font)              scaled to size 9.24683pt on input line 617.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 617.
+ (c:/texlive/2025/texmf-dist/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+LaTeX Font Info:    Font shape `JT2/gt/m/n' will be
+(Font)              scaled to size 8.32214pt on input line 617.
+LaTeX Font Info:    Font shape `JY2/gt/m/n' will be
+(Font)              scaled to size 8.32214pt on input line 617.
+LaTeX Font Info:    Font shape `JT2/mc/m/n' will be
+(Font)              scaled to size 6.47278pt on input line 1.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <9> on input line 1.
 
-[8] (.tex_intermediates/a.aux)
+
+[8]
+Overfull \hbox (48.59041pt too wide) in paragraph at lines 1--1
+[][][] 
+ []
+
+
+
+[9]
+
+[10]
+
+[11]
+
+[12]
+
+[13]
+
+[14] (.tex_intermediates/5014.aux)
  ***********
 pLaTeX2e <2023-02-14u04>+1, based on
 LaTeX2e <2025-06-01>
 L3 programming layer <2025-05-26>
  ***********
- ) 
-Here is how much of TeX's memory you used:
- 18208 strings out of 470001
- 348922 string characters out of 5486830
- 747668 words of memory out of 5000000
- 46319 multiletter control sequences out of 15000+600000
- 700698 words of font info for 140 fonts, out of 8000000 for 9000
- 41 hyphenation exceptions out of 8191
- 85i,14n,91p,725b,889s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-Output written on .tex_intermediates/a.dvi (9 pages, 57988 bytes).
+ )
+Output written on .tex_intermediates/5014.dvi (15 pages, 87152 bytes).
